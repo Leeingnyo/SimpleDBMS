@@ -203,6 +203,27 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
   }
 
+  static final public void dataType() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case INT:
+      jj_consume_token(INT);
+      break;
+    case CHAR:
+      jj_consume_token(CHAR);
+      jj_consume_token(LEFT_PAREN);
+      jj_consume_token(INT_VALUE);
+      jj_consume_token(RIGHT_PAREN);
+      break;
+    case DATE:
+      jj_consume_token(DATE);
+      break;
+    default:
+      jj_la1[6] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+  }
+
   static final public void tableConstraintDefinition() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case PRIMARY:
@@ -212,7 +233,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       referentialConstraint();
       break;
     default:
-      jj_la1[6] = jj_gen;
+      jj_la1[7] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -231,54 +252,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     jj_consume_token(REFERENCES);
     tableName();
     columnNameList();
-  }
-
-  static final public void columnNameList() throws ParseException {
-    jj_consume_token(LEFT_PAREN);
-    columnName();
-    label_3:
-    while (true) {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case COMMA:
-        ;
-        break;
-      default:
-        jj_la1[7] = jj_gen;
-        break label_3;
-      }
-      jj_consume_token(COMMA);
-      columnName();
-    }
-    jj_consume_token(RIGHT_PAREN);
-  }
-
-  static final public void dataType() throws ParseException {
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case INT:
-      jj_consume_token(INT);
-      break;
-    case CHAR:
-      jj_consume_token(CHAR);
-      jj_consume_token(LEFT_PAREN);
-      jj_consume_token(INT_VALUE);
-      jj_consume_token(RIGHT_PAREN);
-      break;
-    case DATE:
-      jj_consume_token(DATE);
-      break;
-    default:
-      jj_la1[8] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-  }
-
-  static final public void tableName() throws ParseException {
-    jj_consume_token(LEGAL_IDENTIFIER);
-  }
-
-  static final public void columnName() throws ParseException {
-    jj_consume_token(LEGAL_IDENTIFIER);
   }
 
   static final public void dropTableQuery() throws ParseException {
@@ -304,22 +277,22 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       break;
     case LEGAL_IDENTIFIER:
       tableName();
-      label_4:
+      label_3:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case COMMA:
           ;
           break;
         default:
-          jj_la1[9] = jj_gen;
-          break label_4;
+          jj_la1[8] = jj_gen;
+          break label_3;
         }
         jj_consume_token(COMMA);
         tableName();
       }
       break;
     default:
-      jj_la1[10] = jj_gen;
+      jj_la1[9] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -338,22 +311,22 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       break;
     case LEGAL_IDENTIFIER:
       selectedColumn();
-      label_5:
+      label_4:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case COMMA:
           ;
           break;
         default:
-          jj_la1[11] = jj_gen;
-          break label_5;
+          jj_la1[10] = jj_gen;
+          break label_4;
         }
         jj_consume_token(COMMA);
         selectedColumn();
       }
       break;
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[11] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -373,22 +346,22 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       columnName();
       break;
     default:
-      jj_la1[13] = jj_gen;
+      jj_la1[12] = jj_gen;
       ;
     }
   }
 
   static final public void tableExpression() throws ParseException {
     fromClause();
-    label_6:
+    label_5:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case WHERE:
         ;
         break;
       default:
-        jj_la1[14] = jj_gen;
-        break label_6;
+        jj_la1[13] = jj_gen;
+        break label_5;
       }
       whereClause();
     }
@@ -401,15 +374,15 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
 
   static final public void tableReferenceList() throws ParseException {
     referedTable();
-    label_7:
+    label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case COMMA:
         ;
         break;
       default:
-        jj_la1[15] = jj_gen;
-        break label_7;
+        jj_la1[14] = jj_gen;
+        break label_6;
       }
       jj_consume_token(COMMA);
       referedTable();
@@ -424,91 +397,21 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       tableName();
       break;
     default:
-      jj_la1[16] = jj_gen;
+      jj_la1[15] = jj_gen;
       ;
     }
-  }
-
-  static final public void whereClause() throws ParseException {
-    jj_consume_token(WHERE);
-    booleanValueExpression();
-  }
-
-  static final public void booleanValueExpression() throws ParseException {
-    booleanTerm();
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case OR:
-      jj_consume_token(OR);
-      booleanValueExpression();
-      break;
-    default:
-      jj_la1[17] = jj_gen;
-      ;
-    }
-  }
-
-  static final public void booleanTerm() throws ParseException {
-    booleanFactor();
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case AND:
-      jj_consume_token(AND);
-      booleanTerm();
-      break;
-    default:
-      jj_la1[18] = jj_gen;
-      ;
-    }
-  }
-
-  static final public void booleanFactor() throws ParseException {
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case NOT:
-      jj_consume_token(NOT);
-      break;
-    default:
-      jj_la1[19] = jj_gen;
-      ;
-    }
-    booleanTest();
-  }
-
-  static final public void booleanTest() throws ParseException {
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case INT_VALUE:
-    case CHAR_STRING:
-    case LEGAL_IDENTIFIER:
-    case DATE_VALUE:
-      predicate();
-      break;
-    case LEFT_PAREN:
-      parenthesizedBooleanExpression();
-      break;
-    default:
-      jj_la1[20] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-  }
-
-  static final public void parenthesizedBooleanExpression() throws ParseException {
-    jj_consume_token(LEFT_PAREN);
-    booleanValueExpression();
-    jj_consume_token(RIGHT_PAREN);
   }
 
   static final public void predicate() throws ParseException {
     if (jj_2_2(4)) {
-      nullPredicate();
+      comparisonPredicate();
     } else {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case INT_VALUE:
-      case CHAR_STRING:
       case LEGAL_IDENTIFIER:
-      case DATE_VALUE:
-        comparisonPredicate();
+        nullPredicate();
         break;
       default:
-        jj_la1[21] = jj_gen;
+        jj_la1[16] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -538,7 +441,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       columnName();
       break;
     default:
-      jj_la1[22] = jj_gen;
+      jj_la1[17] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -571,11 +474,110 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
 
       break;
     default:
-      jj_la1[23] = jj_gen;
+      jj_la1[18] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
 
+  }
+
+  static final public void nullPredicate() throws ParseException {
+    if (jj_2_4(2)) {
+      tableName();
+      jj_consume_token(PERIOD);
+    } else {
+      ;
+    }
+    columnName();
+    jj_consume_token(IS);
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case NOT:
+      jj_consume_token(NOT);
+      break;
+    default:
+      jj_la1[19] = jj_gen;
+      ;
+    }
+    jj_consume_token(NULL);
+  }
+
+  static final public void insertQuery() throws ParseException {
+    jj_consume_token(INSERT);
+    jj_consume_token(INTO);
+    tableName();
+    insertColumnsAndSource();
+  }
+
+  static final public void insertColumnsAndSource() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case LEFT_PAREN:
+      columnNameList();
+      break;
+    default:
+      jj_la1[20] = jj_gen;
+      ;
+    }
+    valueList();
+  }
+
+  static final public void columnNameList() throws ParseException {
+    jj_consume_token(LEFT_PAREN);
+    columnName();
+    label_7:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case COMMA:
+        ;
+        break;
+      default:
+        jj_la1[21] = jj_gen;
+        break label_7;
+      }
+      jj_consume_token(COMMA);
+      columnName();
+    }
+    jj_consume_token(RIGHT_PAREN);
+  }
+
+  static final public void columnName() throws ParseException {
+    jj_consume_token(LEGAL_IDENTIFIER);
+  }
+
+  static final public void valueList() throws ParseException {
+    jj_consume_token(VALUES);
+    jj_consume_token(LEFT_PAREN);
+    value();
+    label_8:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case COMMA:
+        ;
+        break;
+      default:
+        jj_la1[22] = jj_gen;
+        break label_8;
+      }
+      jj_consume_token(COMMA);
+      value();
+    }
+    jj_consume_token(RIGHT_PAREN);
+  }
+
+  static final public void value() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case NULL:
+      jj_consume_token(NULL);
+      break;
+    case INT_VALUE:
+    case CHAR_STRING:
+    case DATE_VALUE:
+      comparableValue();
+      break;
+    default:
+      jj_la1[23] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
   }
 
   static final public void comparableValue() throws ParseException {
@@ -596,82 +598,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
   }
 
-  static final public void nullPredicate() throws ParseException {
-    if (jj_2_4(2)) {
-      tableName();
-      jj_consume_token(PERIOD);
-    } else {
-      ;
-    }
-    columnName();
-    jj_consume_token(IS);
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case NOT:
-      jj_consume_token(NOT);
-      break;
-    default:
-      jj_la1[25] = jj_gen;
-      ;
-    }
-    jj_consume_token(NULL);
-  }
-
-  static final public void insertQuery() throws ParseException {
-    jj_consume_token(INSERT);
-    jj_consume_token(INTO);
-    tableName();
-    insertColumnsAndSource();
-  }
-
-  static final public void insertColumnsAndSource() throws ParseException {
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case LEFT_PAREN:
-      columnNameList();
-      break;
-    default:
-      jj_la1[26] = jj_gen;
-      ;
-    }
-    valueList();
-  }
-
-  static final public void valueList() throws ParseException {
-    jj_consume_token(VALUES);
-    jj_consume_token(LEFT_PAREN);
-    value();
-    label_8:
-    while (true) {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case COMMA:
-        ;
-        break;
-      default:
-        jj_la1[27] = jj_gen;
-        break label_8;
-      }
-      jj_consume_token(COMMA);
-      value();
-    }
-    jj_consume_token(RIGHT_PAREN);
-  }
-
-  static final public void value() throws ParseException {
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case NULL:
-      jj_consume_token(NULL);
-      break;
-    case INT_VALUE:
-    case CHAR_STRING:
-    case DATE_VALUE:
-      comparableValue();
-      break;
-    default:
-      jj_la1[28] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-  }
-
   static final public void deleteQuery() throws ParseException {
     jj_consume_token(DELETE);
     jj_consume_token(FROM);
@@ -681,9 +607,80 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       whereClause();
       break;
     default:
-      jj_la1[29] = jj_gen;
+      jj_la1[25] = jj_gen;
       ;
     }
+  }
+
+  static final public void tableName() throws ParseException {
+    jj_consume_token(LEGAL_IDENTIFIER);
+  }
+
+  static final public void whereClause() throws ParseException {
+    jj_consume_token(WHERE);
+    booleanValueExpression();
+  }
+
+  static final public void booleanValueExpression() throws ParseException {
+    booleanTerm();
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case OR:
+      jj_consume_token(OR);
+      booleanValueExpression();
+      break;
+    default:
+      jj_la1[26] = jj_gen;
+      ;
+    }
+  }
+
+  static final public void booleanTerm() throws ParseException {
+    booleanFactor();
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case AND:
+      jj_consume_token(AND);
+      booleanTerm();
+      break;
+    default:
+      jj_la1[27] = jj_gen;
+      ;
+    }
+  }
+
+  static final public void booleanFactor() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case NOT:
+      jj_consume_token(NOT);
+      break;
+    default:
+      jj_la1[28] = jj_gen;
+      ;
+    }
+    booleanTest();
+  }
+
+  static final public void booleanTest() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case INT_VALUE:
+    case CHAR_STRING:
+    case LEGAL_IDENTIFIER:
+    case DATE_VALUE:
+      predicate();
+      break;
+    case LEFT_PAREN:
+      parenthesizedBooleanExpression();
+      break;
+    default:
+      jj_la1[29] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+  }
+
+  static final public void parenthesizedBooleanExpression() throws ParseException {
+    jj_consume_token(LEFT_PAREN);
+    booleanValueExpression();
+    jj_consume_token(RIGHT_PAREN);
   }
 
   static private boolean jj_2_1(int xla) {
@@ -714,9 +711,43 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     finally { jj_save(3, xla); }
   }
 
+  static private boolean jj_3R_18() {
+    if (jj_scan_token(LESS_OR_EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
   static private boolean jj_3_4() {
     if (jj_scan_token(43)) return true;
     if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1() {
+    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_20() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(34)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(35)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(54)) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_17() {
+    if (jj_scan_token(GREATER_OR_EQUAL)) return true;
     return false;
   }
 
@@ -726,26 +757,75 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_9() {
+  static private boolean jj_3R_13() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_4()) jj_scanpos = xsp;
+    if (jj_3_3()) jj_scanpos = xsp;
     if (jj_scan_token(43)) return true;
-    if (jj_scan_token(IS)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_16() {
+    if (jj_scan_token(EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_12() {
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    Token xsp;
     xsp = jj_scanpos;
-    if (jj_scan_token(31)) jj_scanpos = xsp;
-    if (jj_scan_token(NULL)) return true;
+    if (jj_3R_12()) {
+    jj_scanpos = xsp;
+    if (jj_3R_13()) return true;
+    }
     return false;
   }
 
-  static private boolean jj_3_2() {
-    if (jj_3R_9()) return true;
+  static private boolean jj_3R_15() {
+    if (jj_scan_token(GREATER)) return true;
     return false;
   }
 
-  static private boolean jj_3_1() {
-    if (jj_scan_token(43)) return true;
-    if (jj_scan_token(PERIOD)) return true;
+  static private boolean jj_3R_14() {
+    if (jj_scan_token(LESS)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9() {
+    if (jj_3R_10()) return true;
+    if (jj_3R_11()) return true;
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_19() {
+    if (jj_scan_token(NOT_EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_11() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_14()) {
+    jj_scanpos = xsp;
+    if (jj_3R_15()) {
+    jj_scanpos = xsp;
+    if (jj_3R_16()) {
+    jj_scanpos = xsp;
+    if (jj_3R_17()) {
+    jj_scanpos = xsp;
+    if (jj_3R_18()) {
+    jj_scanpos = xsp;
+    if (jj_3R_19()) return true;
+    }
+    }
+    }
+    }
+    }
     return false;
   }
 
@@ -769,10 +849,10 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x24168220,0x24168200,0x24168200,0x0,0x1800,0x80000000,0x1800,0x0,0x1c0,0x0,0x10000,0x0,0x10000,0x200000,0x800000,0x0,0x200000,0x1000000,0x2000000,0x80000000,0x0,0x0,0x0,0x0,0x0,0x80000000,0x0,0x0,0x0,0x800000,};
+      jj_la1_0 = new int[] {0x24168220,0x24168200,0x24168200,0x0,0x1800,0x80000000,0x1c0,0x1800,0x0,0x10000,0x0,0x10000,0x200000,0x800000,0x0,0x200000,0x0,0x0,0x0,0x80000000,0x0,0x0,0x0,0x0,0x0,0x800000,0x1000000,0x2000000,0x80000000,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x40,0x800,0x0,0x0,0x40,0x0,0x40,0x800,0x40,0x800,0x0,0x0,0x40,0x0,0x0,0x0,0x0,0x40081c,0x40080c,0x40080c,0xfc000,0x40000c,0x0,0x10,0x40,0x40000d,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x40,0x800,0x0,0x0,0x0,0x40,0x800,0x40,0x800,0x0,0x0,0x40,0x0,0x800,0x40080c,0xfc000,0x0,0x10,0x40,0x40,0x40000d,0x40000c,0x0,0x0,0x0,0x0,0x40081c,};
    }
   static final private JJCalls[] jj_2_rtns = new JJCalls[4];
   static private boolean jj_rescan = false;

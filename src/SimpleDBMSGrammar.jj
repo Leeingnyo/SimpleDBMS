@@ -86,7 +86,7 @@ void columnDefinition() :
   dataType()
   (    < NOT > < NULL >
   )?
-}
+}void dataType() :{}{  < INT >| (    < CHAR >    < LEFT_PAREN >    < INT_VALUE >    < RIGHT_PAREN >  )| < DATE >}
 
 void tableConstraintDefinition() :
 {}{  primaryKeyConstraint()
@@ -104,33 +104,4 @@ void referentialConstraint() :
   columnNameList()
   < REFERENCES >
   tableName()
-  columnNameList()}
-
-void columnNameList() :
-{}{
-  < LEFT_PAREN >
-  columnName()
-  (    < COMMA >
-    columnName()
-  )*
-  < RIGHT_PAREN >}
-
-void dataType() :
-{}{
-  < INT >
-| (
-    < CHAR >
-    < LEFT_PAREN >
-    < INT_VALUE >
-    < RIGHT_PAREN >
-  )
-| < DATE >
-}
-
-void tableName() :
-{}{
-  < LEGAL_IDENTIFIER >}
-
-void columnName() :
-{}{
-  < LEGAL_IDENTIFIER >}void dropTableQuery() :{}{  < DROP > < TABLE >  tableNameList()}void showQuery() :{}{  < SHOW > < TABLES >}void descQuery() :{}{  < DESC >  tableNameList()}void tableNameList() :{}{  < STAR >| tableName()  (    < COMMA >    tableName()  )*}void selectQuery() :{}{  < SELECT >  selectList()  tableExpression()}void selectList() :{}{  < STAR >| selectedColumn()  (    < COMMA >    selectedColumn()  )*  /* 나중에 String Array 반환 */}void selectedColumn() :{}{  (    LOOKAHEAD(5)    tableName()    < PERIOD >  )?  columnName()  (    < AS >    columnName()  )?	}void tableExpression() :{}{  fromClause()  (    whereClause()  )*}void fromClause() :{}{  < FROM >  tableReferenceList()}void tableReferenceList() :{}{  referedTable()  (    < COMMA >    referedTable()  )*}void referedTable() :{}{  tableName()  (    < AS >    tableName()  )?}void whereClause() :{}{  < WHERE >  booleanValueExpression()}void booleanValueExpression() :{}{  booleanTerm()  (    < OR >    booleanValueExpression()  )?}void booleanTerm() :{}{  booleanFactor()  (    < AND >    booleanTerm()  )?}void booleanFactor() :{}{  (    < NOT >  )?  booleanTest()}void booleanTest() :{}{  predicate()| parenthesizedBooleanExpression()}void parenthesizedBooleanExpression() :{}{  < LEFT_PAREN >  booleanValueExpression()  < RIGHT_PAREN >}void predicate() :{}{  LOOKAHEAD(4)  nullPredicate()| comparisonPredicate()}void comparisonPredicate() :{}{  compOperand()  compOp()  compOperand()}void compOperand() :{}{  comparableValue()| (    LOOKAHEAD(2)    tableName()    < PERIOD >  )?  columnName()}void compOp() :{}{  (    < LESS >    {          }  | < GREATER >    {          }  | < EQUAL >    {          }  | < GREATER_OR_EQUAL >    {          }  | < LESS_OR_EQUAL >    {          }  | < NOT_EQUAL >    {          }  )  (    {          }  )}void comparableValue() :{}{  < INT_VALUE >| < CHAR_STRING >| < DATE_VALUE >}void nullPredicate() :{}{  (    LOOKAHEAD(2)    tableName()    < PERIOD >  )?  columnName()  < IS >  (    < NOT >  )?  < NULL >}void insertQuery() :{}{  < INSERT > < INTO >  tableName()  insertColumnsAndSource()}void insertColumnsAndSource() :{}{  (    columnNameList()  )?  valueList()}void valueList() :{}{  < VALUES >  < LEFT_PAREN >  value()  (    < COMMA >    value()  )*  < RIGHT_PAREN >}void value() :{}{  < NULL >| comparableValue()}void deleteQuery() :{}{  < DELETE > < FROM >  tableName()  (    whereClause()  )?}
+  columnNameList()}void dropTableQuery() :{}{  < DROP > < TABLE >  tableNameList()}void showQuery() :{}{  < SHOW > < TABLES >}void descQuery() :{}{  < DESC >  tableNameList()}void tableNameList() :{}{  < STAR >| tableName()  (    < COMMA >    tableName()  )*}void selectQuery() :{}{  < SELECT >  selectList()  tableExpression()}void selectList() :{}{  < STAR >| selectedColumn()  (    < COMMA >    selectedColumn()  )*  /* 나중에 String Array 반환 */}void selectedColumn() :{}{  (    LOOKAHEAD(5)    tableName()    < PERIOD >  )?  columnName()  (    < AS >    columnName()  )?	}void tableExpression() :{}{  fromClause()  (    whereClause()  )*}void fromClause() :{}{  < FROM >  tableReferenceList()}void tableReferenceList() :{}{  referedTable()  (    < COMMA >    referedTable()  )*}void referedTable() :{}{  tableName()  (    < AS >    tableName()  )?}void predicate() :{}{  LOOKAHEAD(4)  comparisonPredicate()| nullPredicate()}void comparisonPredicate() :{}{  compOperand()  compOp()  compOperand()}void compOperand() :{}{  comparableValue()| (    LOOKAHEAD(2)    tableName()    < PERIOD >  )?  columnName()}void compOp() :{}{  (    < LESS >    {          }  | < GREATER >    {          }  | < EQUAL >    {          }  | < GREATER_OR_EQUAL >    {          }  | < LESS_OR_EQUAL >    {          }  | < NOT_EQUAL >    {          }  )  (    {          }  )}void nullPredicate() :{}{  (    LOOKAHEAD(2)    tableName()    < PERIOD >  )?  columnName()  < IS >  (    < NOT >  )?  < NULL >}void insertQuery() :{}{  < INSERT > < INTO >  tableName()  insertColumnsAndSource()}void insertColumnsAndSource() :{}{  (    columnNameList()  )?  valueList()}void columnNameList() :{}{  < LEFT_PAREN >  columnName()  (    < COMMA >    columnName()  )*  < RIGHT_PAREN >}void columnName() :{}{  < LEGAL_IDENTIFIER >}void valueList() :{}{  < VALUES >  < LEFT_PAREN >  value()  (    < COMMA >    value()  )*  < RIGHT_PAREN >}void value() :{}{  < NULL >| comparableValue()}void comparableValue() :{}{  < INT_VALUE >| < CHAR_STRING >| < DATE_VALUE >}void deleteQuery() :{}{  < DELETE > < FROM >  tableName()  (    whereClause()  )?}void tableName() :{}{  < LEGAL_IDENTIFIER >}void whereClause() :{}{  < WHERE >  booleanValueExpression()}void booleanValueExpression() :{}{  booleanTerm()  (    < OR >    booleanValueExpression()  )?}void booleanTerm() :{}{  booleanFactor()  (    < AND >    booleanTerm()  )?}void booleanFactor() :{}{  (    < NOT >  )?  booleanTest()}void booleanTest() :{}{  predicate()| parenthesizedBooleanExpression()}void parenthesizedBooleanExpression() :{}{  < LEFT_PAREN >  booleanValueExpression()  < RIGHT_PAREN >}

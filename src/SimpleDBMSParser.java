@@ -9,6 +9,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   public static final int PRINT_INSERT = 6;
   public static final int PRINT_DELETE = 7;
 
+  // ?ÇòÏ§ëÏóê DatabaseÎ°? ?ì∞?ùº ?ûêÎ£? Íµ¨Ï°∞ ?ì±Î°?  // ?Öå?ù¥Î∏? Ïª¨Îüº ?ì±?ùÑ Í∏∞Î°ù?ï† Í≥µÍ∞Ñ?èÑ ?ïÑ?öî  // ?Öå?ù¥Î∏? Î¶¨Ïä§?ä∏Î•? ?ã¥?ùÑ Í≤ÉÎèÑ
+
   public static void main(String args[]) throws ParseException
   {
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
@@ -59,6 +61,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
   }
 
+ // Î®ºÏ? ?Çò???Ñú Î∞ëÏùò Í≤ÉÏùÑ ?çÆ?ùÑ ?úÑ?óò?ù¥ ?ûà?äî Í≤ÉÎì§?? Î∞ëÏúºÎ°? ÎπºÎÉÑ (?çî Ï¢ÅÏ? ?ùòÎØ∏Î?? ?úÑÎ°?)
   static final public void command() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case CREATE:
@@ -711,28 +714,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_18() {
-    if (jj_scan_token(LESS_OR_EQUAL)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_2() {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_4() {
-    if (jj_scan_token(45)) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1() {
-    if (jj_scan_token(45)) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_20() {
     Token xsp;
     xsp = jj_scanpos;
@@ -743,62 +724,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     if (jj_scan_token(48)) return true;
     }
     }
-    return false;
-  }
-
-  static private boolean jj_3R_17() {
-    if (jj_scan_token(GREATER_OR_EQUAL)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_3() {
-    if (jj_scan_token(45)) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_13() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_scan_token(45)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_16() {
-    if (jj_scan_token(EQUAL)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_12() {
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_12()) {
-    jj_scanpos = xsp;
-    if (jj_3R_13()) return true;
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_15() {
-    if (jj_scan_token(GREATER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14() {
-    if (jj_scan_token(LESS)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_9() {
-    if (jj_3R_10()) return true;
-    if (jj_3R_11()) return true;
-    if (jj_3R_10()) return true;
     return false;
   }
 
@@ -826,6 +751,84 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
     }
     }
+    return false;
+  }
+
+  static private boolean jj_3R_18() {
+    if (jj_scan_token(LESS_OR_EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_4() {
+    if (jj_scan_token(45)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_3R_9()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_17() {
+    if (jj_scan_token(GREATER_OR_EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_3() {
+    if (jj_scan_token(45)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_16() {
+    if (jj_scan_token(EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_13() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_3()) jj_scanpos = xsp;
+    if (jj_scan_token(45)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_12() {
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_12()) {
+    jj_scanpos = xsp;
+    if (jj_3R_13()) return true;
+    }
+    return false;
+  }
+
+  static private boolean jj_3_1() {
+    if (jj_scan_token(45)) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_15() {
+    if (jj_scan_token(GREATER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14() {
+    if (jj_scan_token(LESS)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9() {
+    if (jj_3R_10()) return true;
+    if (jj_3R_11()) return true;
+    if (jj_3R_10()) return true;
     return false;
   }
 

@@ -427,8 +427,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   static final public void compOperand() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INT_VALUE:
-    case CHAR_STRING:
     case DATE_VALUE:
+    case CHAR_STRING:
       comparableValue();
       break;
     case LEGAL_IDENTIFIER:
@@ -569,8 +569,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       jj_consume_token(NULL);
       break;
     case INT_VALUE:
-    case CHAR_STRING:
     case DATE_VALUE:
+    case CHAR_STRING:
       comparableValue();
       break;
     default:
@@ -661,10 +661,10 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
 
   static final public void booleanTest() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case INT_VALUE:
-    case CHAR_STRING:
     case LEGAL_IDENTIFIER:
+    case INT_VALUE:
     case DATE_VALUE:
+    case CHAR_STRING:
       predicate();
       break;
     case LEFT_PAREN:
@@ -722,13 +722,13 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   }
 
   static private boolean jj_3_4() {
-    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(45)) return true;
     if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
   static private boolean jj_3_1() {
-    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(45)) return true;
     if (jj_scan_token(PERIOD)) return true;
     return false;
   }
@@ -736,11 +736,11 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   static private boolean jj_3R_20() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_scan_token(34)) {
+    if (jj_scan_token(46)) {
     jj_scanpos = xsp;
-    if (jj_scan_token(35)) {
+    if (jj_scan_token(51)) {
     jj_scanpos = xsp;
-    if (jj_scan_token(54)) return true;
+    if (jj_scan_token(48)) return true;
     }
     }
     return false;
@@ -752,7 +752,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   }
 
   static private boolean jj_3_3() {
-    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(45)) return true;
     if (jj_scan_token(PERIOD)) return true;
     return false;
   }
@@ -761,7 +761,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_scan_token(43)) return true;
+    if (jj_scan_token(45)) return true;
     return false;
   }
 
@@ -849,10 +849,10 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x24168220,0x24168200,0x24168200,0x0,0x1800,0x80000000,0x1c0,0x1800,0x0,0x10000,0x0,0x10000,0x200000,0x800000,0x0,0x200000,0x0,0x0,0x0,0x80000000,0x0,0x0,0x0,0x0,0x0,0x800000,0x1000000,0x2000000,0x80000000,0x0,};
+      jj_la1_0 = new int[] {0x48b4060,0x48b4040,0x48b4040,0x0,0xc00,0x80000000,0x380,0xc00,0x0,0x100000,0x0,0x100000,0x200000,0x8000000,0x0,0x200000,0x0,0x0,0x0,0x80000000,0x0,0x0,0x0,0x0,0x0,0x8000000,0x10000000,0x20000000,0x80000000,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x40,0x800,0x0,0x0,0x0,0x40,0x800,0x40,0x800,0x0,0x0,0x40,0x0,0x800,0x40080c,0xfc000,0x0,0x10,0x40,0x40,0x40000d,0x40000c,0x0,0x0,0x0,0x0,0x40081c,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x10,0x2000,0x0,0x0,0x0,0x10,0x2000,0x10,0x2000,0x0,0x0,0x10,0x0,0x2000,0x96000,0x1f80,0x0,0x4,0x10,0x10,0x94001,0x94000,0x0,0x0,0x0,0x0,0x96004,};
    }
   static final private JJCalls[] jj_2_rtns = new JJCalls[4];
   static private boolean jj_rescan = false;

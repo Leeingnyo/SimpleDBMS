@@ -11,53 +11,53 @@ public interface SimpleDBMSParserConstants {
   /** RegularExpression Id. */
   int EXIT = 5;
   /** RegularExpression Id. */
-  int INT = 6;
+  int CREATE = 6;
   /** RegularExpression Id. */
-  int CHAR = 7;
+  int INT = 7;
   /** RegularExpression Id. */
-  int DATE = 8;
+  int CHAR = 8;
   /** RegularExpression Id. */
-  int CREATE = 9;
+  int DATE = 9;
   /** RegularExpression Id. */
-  int TABLE = 10;
+  int PRIMARY = 10;
   /** RegularExpression Id. */
-  int PRIMARY = 11;
+  int FOREIGN = 11;
   /** RegularExpression Id. */
-  int FOREIGN = 12;
+  int KEY = 12;
   /** RegularExpression Id. */
-  int KEY = 13;
+  int REFERENCES = 13;
   /** RegularExpression Id. */
-  int REFERENCES = 14;
+  int DROP = 14;
   /** RegularExpression Id. */
-  int DROP = 15;
+  int TABLE = 15;
   /** RegularExpression Id. */
-  int STAR = 16;
+  int DESC = 16;
   /** RegularExpression Id. */
-  int DESC = 17;
+  int SHOW = 17;
   /** RegularExpression Id. */
-  int SHOW = 18;
+  int TABLES = 18;
   /** RegularExpression Id. */
-  int TABLES = 19;
+  int SELECT = 19;
   /** RegularExpression Id. */
-  int SELECT = 20;
+  int STAR = 20;
   /** RegularExpression Id. */
   int AS = 21;
   /** RegularExpression Id. */
   int FROM = 22;
   /** RegularExpression Id. */
-  int WHERE = 23;
+  int INSERT = 23;
   /** RegularExpression Id. */
-  int OR = 24;
+  int INTO = 24;
   /** RegularExpression Id. */
-  int AND = 25;
+  int VALUES = 25;
   /** RegularExpression Id. */
-  int INSERT = 26;
+  int DELETE = 26;
   /** RegularExpression Id. */
-  int INTO = 27;
+  int WHERE = 27;
   /** RegularExpression Id. */
-  int VALUES = 28;
+  int OR = 28;
   /** RegularExpression Id. */
-  int DELETE = 29;
+  int AND = 29;
   /** RegularExpression Id. */
   int IS = 30;
   /** RegularExpression Id. */
@@ -67,51 +67,51 @@ public interface SimpleDBMSParserConstants {
   /** RegularExpression Id. */
   int SEMICOLON = 33;
   /** RegularExpression Id. */
-  int INT_VALUE = 34;
+  int LEFT_PAREN = 34;
   /** RegularExpression Id. */
-  int CHAR_STRING = 35;
+  int RIGHT_PAREN = 35;
   /** RegularExpression Id. */
-  int LEFT_PAREN = 36;
+  int COMMA = 36;
   /** RegularExpression Id. */
-  int RIGHT_PAREN = 37;
+  int PERIOD = 37;
   /** RegularExpression Id. */
-  int COMMA = 38;
+  int UNDERSCORE = 38;
   /** RegularExpression Id. */
-  int PERIOD = 39;
+  int GREATER = 39;
   /** RegularExpression Id. */
-  int UNDERSCORE = 40;
+  int LESS = 40;
   /** RegularExpression Id. */
-  int SIGN = 41;
+  int EQUAL = 41;
   /** RegularExpression Id. */
-  int DIGIT = 42;
+  int GREATER_OR_EQUAL = 42;
   /** RegularExpression Id. */
-  int LEGAL_IDENTIFIER = 43;
+  int LESS_OR_EQUAL = 43;
   /** RegularExpression Id. */
-  int ALPHABET = 44;
+  int NOT_EQUAL = 44;
   /** RegularExpression Id. */
-  int QUOTE = 45;
+  int LEGAL_IDENTIFIER = 45;
   /** RegularExpression Id. */
-  int GREATER = 46;
+  int INT_VALUE = 46;
   /** RegularExpression Id. */
-  int LESS = 47;
+  int SIGN = 47;
   /** RegularExpression Id. */
-  int EQUAL = 48;
+  int DATE_VALUE = 48;
   /** RegularExpression Id. */
-  int GREATER_OR_EQUAL = 49;
+  int NNNN = 49;
   /** RegularExpression Id. */
-  int LESS_OR_EQUAL = 50;
+  int NN = 50;
   /** RegularExpression Id. */
-  int NOT_EQUAL = 51;
+  int CHAR_STRING = 51;
   /** RegularExpression Id. */
-  int NNNN = 52;
+  int NON_QUOTE_CHARACTER = 52;
   /** RegularExpression Id. */
-  int NN = 53;
+  int DIGIT = 53;
   /** RegularExpression Id. */
-  int DATE_VALUE = 54;
+  int ALPHABET = 54;
   /** RegularExpression Id. */
-  int NON_QUOTE_CHARACTER = 55;
+  int NON_QUOTE_SPECIAL_CHARACTER = 55;
   /** RegularExpression Id. */
-  int NON_QUOTE_SPECIAL_CHARACTER = 56;
+  int QUOTE = 56;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -124,57 +124,57 @@ public interface SimpleDBMSParserConstants {
     "\"\\t\"",
     "\"\\n\"",
     "\"exit\"",
+    "\"create\"",
     "\"int\"",
     "\"char\"",
     "\"date\"",
-    "\"create\"",
-    "\"table\"",
     "\"primary\"",
     "\"foreign\"",
     "\"key\"",
     "\"references\"",
     "\"drop\"",
-    "\"*\"",
+    "\"table\"",
     "\"desc\"",
     "\"show\"",
     "\"tables\"",
     "\"select\"",
+    "\"*\"",
     "\"as\"",
     "\"from\"",
-    "\"where\"",
-    "\"or\"",
-    "\"and\"",
     "\"insert\"",
     "\"into\"",
     "\"values\"",
     "\"delete\"",
+    "\"where\"",
+    "\"or\"",
+    "\"and\"",
     "\"is\"",
     "\"not\"",
     "\"null\"",
     "\";\"",
-    "<INT_VALUE>",
-    "<CHAR_STRING>",
     "\"(\"",
     "\")\"",
     "\",\"",
     "\".\"",
     "\"_\"",
-    "<SIGN>",
-    "<DIGIT>",
-    "<LEGAL_IDENTIFIER>",
-    "<ALPHABET>",
-    "<QUOTE>",
     "\">\"",
     "\"<\"",
     "\"=\"",
     "\">=\"",
     "\"<=\"",
     "\"!=\"",
+    "<LEGAL_IDENTIFIER>",
+    "<INT_VALUE>",
+    "<SIGN>",
+    "<DATE_VALUE>",
     "<NNNN>",
     "<NN>",
-    "<DATE_VALUE>",
+    "<CHAR_STRING>",
     "<NON_QUOTE_CHARACTER>",
+    "<DIGIT>",
+    "<ALPHABET>",
     "<NON_QUOTE_SPECIAL_CHARACTER>",
+    "<QUOTE>",
   };
 
 }

@@ -18,17 +18,10 @@ public class SimpleDBMSParser{
 
 TOKEN : /* Keywords */
 {
-  < EXIT : "exit" >
+  < EXIT : "exit" >| < CREATE : "create" >
 | < INT : "int" >
 | < CHAR : "char" >
-| < DATE : "date" >
-| < CREATE : "create" >| < TABLE : "table" >| < PRIMARY : "primary" >| < FOREIGN : "foreign" >| < KEY : "key" >| < REFERENCES : "references" >| < DROP : "drop" >| < STAR : "*" >| < DESC : "desc" >| < SHOW : "show" >| < TABLES : "tables" >| < SELECT : "select" >| < AS : "as" >| < FROM : "from" >| < WHERE : "where" >| < OR : "or" >| < AND : "and" >| < INSERT : "insert" >| < INTO : "into" >| < VALUES : "values" >| < DELETE : "delete" >| < IS : "is" >| < NOT : "not" >| < NULL : "null" >}TOKEN :{  < SEMICOLON : ";" >| < INT_VALUE : (< SIGN >)? (< DIGIT >)+ >| < CHAR_STRING : < QUOTE > (< NON_QUOTE_CHARACTER >)* < QUOTE > >
-| < LEFT_PAREN : "(" >
-| < RIGHT_PAREN : ")" >
-| < COMMA : "," >| < PERIOD : "." >
-| < UNDERSCORE : "_" >
-| < SIGN : "+" | "-" >| < DIGIT : [ "0"-"9" ] >| < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >
-| < ALPHABET : [ "A"-"Z", "a"-"z" ] >| < QUOTE : "\"" | "'" >| < GREATER : ">" >| < LESS : "<" >| < EQUAL : "=" >| < GREATER_OR_EQUAL : ">=" >| < LESS_OR_EQUAL : "<=" >| < NOT_EQUAL : "!=" >| < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >| < NN : < DIGIT > < DIGIT > >| < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | < NON_QUOTE_SPECIAL_CHARACTER > | " " >| < NON_QUOTE_SPECIAL_CHARACTER : ~["\"", "'"] >}
+| < DATE : "date" >| < PRIMARY : "primary" >| < FOREIGN : "foreign" >| < KEY : "key" >| < REFERENCES : "references" >| < DROP : "drop" >| < TABLE : "table" >| < DESC : "desc" >| < SHOW : "show" >| < TABLES : "tables" >| < SELECT : "select" >| < STAR : "*" >| < AS : "as" >| < FROM : "from" >| < INSERT : "insert" >| < INTO : "into" >| < VALUES : "values" >| < DELETE : "delete" >| < WHERE : "where" >| < OR : "or" >| < AND : "and" >| < IS : "is" >| < NOT : "not" >| < NULL : "null" >}TOKEN :{  < SEMICOLON : ";" >| < LEFT_PAREN : "(" >| < RIGHT_PAREN : ")" >| < COMMA : "," >| < PERIOD : "." >| < UNDERSCORE : "_" >| < GREATER : ">" >| < LESS : "<" >| < EQUAL : "=" >| < GREATER_OR_EQUAL : ">=" >| < LESS_OR_EQUAL : "<=" >| < NOT_EQUAL : "!=" >| < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >| < INT_VALUE : (< SIGN >)? (< DIGIT >)+ >| < SIGN : "+" | "-" >| < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >| < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >| < NN : < DIGIT > < DIGIT > >| < CHAR_STRING : < QUOTE > (< NON_QUOTE_CHARACTER >)* < QUOTE > >| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | < NON_QUOTE_SPECIAL_CHARACTER > | " " >| < DIGIT : [ "0"-"9" ] >| < ALPHABET : [ "A"-"Z", "a"-"z" ] >| < NON_QUOTE_SPECIAL_CHARACTER : ~["\"", "'"] >| < QUOTE : "\"" | "'" >}
 
 void command() :
 {}{  queryList()

@@ -1,7 +1,7 @@
 options{  static = true;
-  DEBUG_PARSER = false;}PARSER_BEGIN(SimpleDBMSParser)
+  DEBUG_PARSER = false;}PARSER_BEGIN(SimpleDBMSParser)import com.sleepycat.je.Database;import com.sleepycat.je.DatabaseException;import com.sleepycat.je.DatabaseConfig;import com.sleepycat.je.Cursor;import com.sleepycat.je.Environment;import com.sleepycat.je.EnvironmentConfig;
 public class SimpleDBMSParser{
-  public static final int PRINT_SYNTAX_ERROR = 0;  public static final int PRINT_CREATE_TABLE = 1;  public static final int PRINT_DROP_TABLE = 2;  public static final int PRINT_DESC = 3;  public static final int PRINT_SHOW_TABLES = 4;  public static final int PRINT_SELECT = 5;  public static final int PRINT_INSERT = 6;  public static final int PRINT_DELETE = 7;  // 나중에 Database로 쓰일 자료 구조 등록  // 테이블 컬럼 등을 기록할 공간도 필요  // 테이블 리스트를 담을 것도
+  public static final int PRINT_SYNTAX_ERROR = 0;  public static final int PRINT_CREATE_TABLE = 1;  public static final int PRINT_DROP_TABLE = 2;  public static final int PRINT_DESC = 3;  public static final int PRINT_SHOW_TABLES = 4;  public static final int PRINT_SELECT = 5;  public static final int PRINT_INSERT = 6;  public static final int PRINT_DELETE = 7;  Environment myDbEnvironment = null;  Database myDatabase = null;  EnvironmentConfig envConfig = new EnvironmentConfig();  envConfig.setAllowCreate(true);  myDbEnvironment = new Environment(new File("db/"), envConfig);  DatabaseConfig dbConfig = new DatabaseConfig();  dbConfig.setAllowCreate(true);  dbConfig.setSrotedDuplicates(true);  myDatabase = myDbEnvironment.openDatabase(null, "sampleDatabase", dbConfig);
     public static void main(String args[]) throws ParseException  {    SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
     while (true)    {      try      {
         System.out.print("DB_2014-11663> ");        parser.command();      }      catch (Exception e)      {        printMessage(PRINT_SYNTAX_ERROR);        SimpleDBMSParser.ReInit(System.in);      }    }  }
@@ -21,14 +21,14 @@ TOKEN : /* Keywords */
   < EXIT : "exit" >| < CREATE : "create" >
 | < INT : "int" >
 | < CHAR : "char" >
-| < DATE : "date" >| < PRIMARY : "primary" >| < FOREIGN : "foreign" >| < KEY : "key" >| < REFERENCES : "references" >| < DROP : "drop" >| < TABLE : "table" >| < DESC : "desc" >| < SHOW : "show" >| < TABLES : "tables" >| < SELECT : "select" >| < STAR : "*" >| < AS : "as" >| < FROM : "from" >| < INSERT : "insert" >| < INTO : "into" >| < VALUES : "values" >| < DELETE : "delete" >| < WHERE : "where" >| < OR : "or" >| < AND : "and" >| < IS : "is" >| < NOT : "not" >| < NULL : "null" >}TOKEN :{  < SEMICOLON : ";" >| < LEFT_PAREN : "(" >| < RIGHT_PAREN : ")" >| < COMMA : "," >| < PERIOD : "." >| < UNDERSCORE : "_" >| < GREATER : ">" >| < LESS : "<" >| < EQUAL : "=" >| < GREATER_OR_EQUAL : ">=" >| < LESS_OR_EQUAL : "<=" >| < NOT_EQUAL : "!=" >| < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >| < INT_VALUE : (< SIGN >)? (< DIGIT >)+ >| < SIGN : "+" | "-" >| < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >| < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >| < NN : < DIGIT > < DIGIT > >| < CHAR_STRING : < QUOTE > (< NON_QUOTE_CHARACTER >)* < QUOTE > >| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | < NON_QUOTE_SPECIAL_CHARACTER > | " " >| < DIGIT : [ "0"-"9" ] >| < ALPHABET : [ "A"-"Z", "a"-"z" ] >| < NON_QUOTE_SPECIAL_CHARACTER : ~["\"", "'"] >| < QUOTE : "\"" | "'" >} // 먼저 나와서 밑의 것을 덮을 위험이 있는 것들은 밑으로 빼냄 (더 좁은 의미를 위로)
+| < DATE : "date" >| < PRIMARY : "primary" >| < FOREIGN : "foreign" >| < KEY : "key" >| < REFERENCES : "references" >| < DROP : "drop" >| < TABLE : "table" >| < DESC : "desc" >| < SHOW : "show" >| < TABLES : "tables" >| < SELECT : "select" >| < STAR : "*" >| < AS : "as" >| < FROM : "from" >| < INSERT : "insert" >| < INTO : "into" >| < VALUES : "values" >| < DELETE : "delete" >| < WHERE : "where" >| < OR : "or" >| < AND : "and" >| < IS : "is" >| < NOT : "not" >| < NULL : "null" >}TOKEN :{  < SEMICOLON : ";" >| < LEFT_PAREN : "(" >| < RIGHT_PAREN : ")" >| < COMMA : "," >| < PERIOD : "." >| < UNDERSCORE : "_" >| < GREATER : ">" >| < LESS : "<" >| < EQUAL : "=" >| < GREATER_OR_EQUAL : ">=" >| < LESS_OR_EQUAL : "<=" >| < NOT_EQUAL : "!=" >| < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >| < INT_VALUE : (< SIGN >)? (< DIGIT >)+ >| < SIGN : "+" | "-" >| < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >| < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >| < NN : < DIGIT > < DIGIT > >| < CHAR_STRING : < QUOTE > (< NON_QUOTE_CHARACTER >)* < QUOTE > >| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | < NON_QUOTE_SPECIAL_CHARACTER > | " " >| < DIGIT : [ "0"-"9" ] >| < ALPHABET : [ "A"-"Z", "a"-"z" ] >| < NON_QUOTE_SPECIAL_CHARACTER : ~[< QUOTE >, < ALPHABET >, < DIGIT >] >| < QUOTE : "\"" | "'" >} // 먼저 나와서 밑의 것을 덮을 위험이 있는 것들은 밑으로 빼냄 (더 좁은 의미를 위로)
 
 void command() :
 {}{  queryList()
 | (
     < EXIT >
     < SEMICOLON >
-    {      System.exit(0);
+    {      if (myDatebase != null) myDatebase.close();      if (myDbEnvironment != null) myDbEnvironment.close();      System.exit(0);
     }
   )}
 

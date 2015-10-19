@@ -1,6 +1,13 @@
-package schema;
+package schema.column;
 
-public class Int implements DataType {
+import java.io.Serializable;
+
+public class Int implements DataType, Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1416134338899052546L;
 
 	@Override
 	public Type getType() {

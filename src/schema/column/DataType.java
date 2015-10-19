@@ -1,4 +1,4 @@
-package schema;
+package schema.column;
 
 public interface DataType {
 	public enum Type {INT, CHAR, DATE, REFERENCE_KEY};

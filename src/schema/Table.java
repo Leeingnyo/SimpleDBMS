@@ -1,14 +1,21 @@
 package schema;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import schema.Exception.CreateTableException;
-import schema.Exception.DuplicateColumnDefError;
-import schema.Exception.DuplicatePrimaryKeyDefError;
-import schema.Exception.NonExistingColumnDefError;
+import schema.column.DataType.Type;
+import schema.exception.CharLengthError;
+import schema.exception.CreateTableException;
+import schema.exception.DuplicateColumnDefError;
+import schema.exception.DuplicatePrimaryKeyDefError;
+import schema.exception.NonExistingColumnDefError;
 
-public class Table {
+public class Table implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5706316271954648061L;
 	String tableName;
 	HashMap<String, Column> columns;
 	Boolean hasPrimaryKey = false;
@@ -24,8 +31,9 @@ public class Table {
 		return tableName;
 	}
 	
-	public void putColumn(Column column) throws DuplicateColumnDefError {
+	public void putColumn(Column column) throws CreateTableException {
 		if (columns.containsKey(column.getName())) throw new DuplicateColumnDefError();
+		if (column.getType().getType() == Type.CHAR && !column.getType().validateType("")) throw new CharLengthError();
 		columns.put(column.getName(), column);
 	}
 	
@@ -68,5 +76,13 @@ public class Table {
 			}
 		}
 		return false;
+	}
+	
+	public static Table createTable(String tableName, ArrayList<TableElement> tableElementList) throws CreateTableException {
+		Table table = new Table(tableName);
+		for (TableElement tableElement : tableElementList){
+			tableElement.addElementToTable(table);
+		}
+		return table;
 	}
 }

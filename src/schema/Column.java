@@ -1,11 +1,18 @@
 package schema;
 
-import schema.Exception.CreateTableException;
-import schema.Exception.DuplicateColumnDefError;
-import schema.Exception.DuplicatePrimaryKeyDefError;
+import java.io.Serializable;
 
+import schema.column.DataType;
+import schema.column.ForeignKey;
+import schema.exception.CreateTableException;
+import schema.exception.DuplicateColumnDefError;
+import schema.exception.DuplicatePrimaryKeyDefError;
 
-public class Column {
+public class Column implements TableElement, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1097837096321782137L;
 	private String columnName;
 	private DataType dataType;
 	private Boolean nullable;
@@ -41,7 +48,7 @@ public class Column {
 	
 	public void setPrimaryKey() throws CreateTableException {
 		if (isPrimaryKey) throw new DuplicatePrimaryKeyDefError();
-		nullable = true;
+		nullable = false;
 		isPrimaryKey = true;
 	}
 	public void setForeignKey(ForeignKey foreignKey) throws CreateTableException {
@@ -60,5 +67,10 @@ public class Column {
 			info += "\t" + "FOR";
 		}
 		return info;
+	}
+
+	@Override
+	public void addElementToTable(Table table) throws CreateTableException {
+		table.putColumn(this);
 	}
 }

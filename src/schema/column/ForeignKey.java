@@ -1,6 +1,12 @@
-package schema;
+package schema.column;
 
-public class ForeignKey {
+import java.io.Serializable;
+
+public class ForeignKey implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6054750719917871151L;
 	private String referenceTableName;
 	private String referenceColumnName;
 	

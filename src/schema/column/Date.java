@@ -1,6 +1,12 @@
-package schema;
+package schema.column;
 
-public class Date implements DataType {
+import java.io.Serializable;
+
+public class Date implements DataType, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3072292930927152092L;
 
 	@Override
 	public Type getType() {

@@ -1,12 +1,17 @@
-package schema;
+package schema.column;
 
-import schema.Exception.CharLengthError;
+import java.io.Serializable;
 
-public class Char implements DataType {
+import schema.exception.CharLengthError;
+
+public class Char implements DataType, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4345835289517323274L;
 	int size;
 
-	public Char(int size) throws CharLengthError {
-		if (size <= 0) throw new CharLengthError();
+	public Char(int size) {
 		this.size = size;
 	}
 

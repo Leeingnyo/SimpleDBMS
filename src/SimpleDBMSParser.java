@@ -465,7 +465,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     try {
       if (tableNameList == null) {
         if (tables.values().size() == 0) {
-          System.out.println("No such table");
           {if (true) return;}
         }
         System.out.println("-------------------------------------------------");

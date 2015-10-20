@@ -138,6 +138,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   public static void save(String key, Object data){
     DatabaseEntry keyEntry;
     DatabaseEntry dataEntry;
+    delete(key);
     try {
       keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
       dataEntry = new DatabaseEntry(toBytes(data));
@@ -171,6 +172,14 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     } catch (Exception e) {
       e.printStackTrace();
       return null;
+    }
+  }
+  public static void delete(String key){
+    try {
+      DatabaseEntry keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
+      myDatabase.delete(null, keyEntry);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -957,54 +966,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3_4() {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_21() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(46)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(51)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(48)) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3_3() {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_3R_22()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_11() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_13()) {
-    jj_scanpos = xsp;
-    if (jj_3R_14()) return true;
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_13() {
-    if (jj_3R_21()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_10() {
     if (jj_3R_11()) return true;
     if (jj_3R_12()) return true;
@@ -1082,6 +1043,54 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
     }
     }
+    return false;
+  }
+
+  static private boolean jj_3_4() {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_21() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(46)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(51)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(48)) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3_3() {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_3()) jj_scanpos = xsp;
+    if (jj_3R_22()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_11() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_13()) {
+    jj_scanpos = xsp;
+    if (jj_3R_14()) return true;
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_13() {
+    if (jj_3R_21()) return true;
     return false;
   }
 

@@ -787,7 +787,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     jj_consume_token(LEGAL_IDENTIFIER);
     token = getToken(0);
     columnName = token.image;
-    {if (true) return columnName;}
+    {if (true) return columnName.toLowerCase();}
     throw new Error("Missing return statement in function");
   }
 
@@ -867,7 +867,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     jj_consume_token(LEGAL_IDENTIFIER);
     token = getToken(0);
     tableName = token.image;
-        {if (true) return tableName;}
+        {if (true) return tableName.toLowerCase();}
     throw new Error("Missing return statement in function");
   }
 

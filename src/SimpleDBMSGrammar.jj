@@ -1,91 +1,1062 @@
-options{  static = true;
-  DEBUG_PARSER = false;}PARSER_BEGIN(SimpleDBMSParser)import java.io.File;import java.io.UnsupportedEncodingException;import java.io.ByteArrayOutputStream;import java.io.ByteArrayInputStream;import java.io.ObjectOutputStream;import java.io.ObjectInputStream;import java.io.IOException;import java.util.ArrayList;import java.util.HashMap;import java.lang.ClassNotFoundException;import schema.Table;import schema.TableElement;import schema.Column;import schema.TableConstraint;import schema.tableConstraint.*;import schema.column.*;import schema.exception.*;import com.sleepycat.je.Cursor;import com.sleepycat.je.Database;import com.sleepycat.je.DatabaseEntry;import com.sleepycat.je.DatabaseException;import com.sleepycat.je.DatabaseConfig;import com.sleepycat.je.Environment;import com.sleepycat.je.EnvironmentConfig;import com.sleepycat.je.LockMode;import com.sleepycat.je.OperationStatus;
-public class SimpleDBMSParser{  public enum Message  {    NONE,    PRINT_SYNTAX_ERROR,    PRINT_CREATE_TABLE,    PRINT_DROP_TABLE,    PRINT_DESC,    PRINT_SHOW_TABLES,    PRINT_SELECT,    PRINT_INSERT,    PRINT_DELETE,  };  public static Message q;  public static Environment myDbEnvironment = null;  public static Database myDatabase = null;  public static HashMap<String, Table> tables = new HashMap<String, Table>();
-    public static void main(String args[]) throws ParseException  {    SimpleDBMSParser parser = new SimpleDBMSParser(System.in);        EnvironmentConfig envConfig = new EnvironmentConfig();    envConfig.setAllowCreate(true);    myDbEnvironment = new Environment(new File("db/"), envConfig);    DatabaseConfig dbConfig = new DatabaseConfig();    dbConfig.setAllowCreate(true);    dbConfig.setSortedDuplicates(true);    myDatabase = myDbEnvironment.openDatabase(null, "sampleDatabase", dbConfig);    tables = (HashMap<String, Table>) load("tables-schema");    if (tables == null) tables = new HashMap<String, Table>();
-    while (true)    {      try      {
-        System.out.print("DB_2014-11663> ");        parser.command();      }      catch (Exception e)      {        printMessage(Message.PRINT_SYNTAX_ERROR);        SimpleDBMSParser.ReInit(System.in);      }    }  }
+options
+{
+  static = true;
+  DEBUG_PARSER = false;
+}
 
-  public static void printMessage(Message q)  {
-    switch(q)    {
+PARSER_BEGIN(SimpleDBMSParser)
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.lang.ClassNotFoundException;
+
+import schema.Table;
+import schema.TableElement;
+import schema.Column;
+import schema.TableConstraint;
+import schema.tableConstraint.*;
+import schema.column.*;
+import schema.exception.*;
+
+import where.WhereClause;
+import where.BooleanValue;
+import where.BooleanValueExpression;
+import where.BooleanTerm;
+import where.BooleanFactor;
+import where.BooleanTest;
+import where.Predicate;
+import where.ComparisonPredicate;
+import where.NullPredicate;
+
+import com.sleepycat.je.Cursor;
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.OperationStatus;
+
+public class SimpleDBMSParser
+{
+  public enum Message
+  {
+    NONE,
+    PRINT_SYNTAX_ERROR,
+    PRINT_CREATE_TABLE,
+    PRINT_DROP_TABLE,
+    PRINT_DESC,
+    PRINT_SHOW_TABLES,
+    PRINT_SELECT,
+    PRINT_INSERT,
+    PRINT_DELETE,
+  };
+
+  public static Message q;
+
+  public static Environment myDbEnvironment = null;
+  public static Database myDatabase = null;
+
+  public static HashMap<String, Table> tables = new HashMap<String, Table>();
+  
+  public static void main(String args[]) throws ParseException
+  {
+    SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
+    
+    EnvironmentConfig envConfig = new EnvironmentConfig();
+    envConfig.setAllowCreate(true);
+    myDbEnvironment = new Environment(new File("db/"), envConfig);
+
+    DatabaseConfig dbConfig = new DatabaseConfig();
+    dbConfig.setAllowCreate(true);
+    dbConfig.setSortedDuplicates(true);
+    myDatabase = myDbEnvironment.openDatabase(null, "sampleDatabase", dbConfig);
+
+    tables = (HashMap<String, Table>) load("tables-schema");
+    if (tables == null) tables = new HashMap<String, Table>();
+
+    while (true)
+    {
+      try
+      {
+        System.out.print("DB_2014-11663> ");
+        parser.command();
+      }
+      catch (Exception e)
+      {
+        printMessage(Message.PRINT_SYNTAX_ERROR);
+        SimpleDBMSParser.ReInit(System.in);
+      }
+    }
+  }
+
+  public static void printMessage(Message q)
+  {
+    switch(q)
+    {
       case PRINT_SYNTAX_ERROR:
       	System.out.println("Syntax error");
       	break;
       case PRINT_CREATE_TABLE:
-      	break;      case PRINT_DROP_TABLE:      	break;      case PRINT_DESC:      	break;      case PRINT_SHOW_TABLES:      	break;      case PRINT_INSERT:      	System.out.println("\'INSERT\' requested");      	break;      case PRINT_DELETE:      	System.out.println("\'DELETE\' requested");      	break;      case PRINT_SELECT:      	System.out.println("\'SELECT\' requested");      	break;      default:        break;    }
-  }  public static byte[] toBytes(Object object){    ByteArrayOutputStream byteOut = new ByteArrayOutputStream();    try {      ObjectOutputStream out = new ObjectOutputStream(byteOut);      out.writeObject(object);      return byteOut.toByteArray();    } catch (IOException e) {      e.printStackTrace();      return null;    }  }  public static Object fromBytes(byte[] bytes){    ByteArrayInputStream byteIn = new ByteArrayInputStream(bytes);    try {      ObjectInputStream in = new ObjectInputStream(byteIn);      return in.readObject();    } catch (IOException e) {      e.printStackTrace();      return null;    } catch (ClassNotFoundException e) {      e.printStackTrace();      return null;    }  }  public static void save(String key, Object data){    DatabaseEntry keyEntry;    DatabaseEntry dataEntry;    delete(key);    try {      keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));      dataEntry = new DatabaseEntry(toBytes(data));      myDatabase.put(null, keyEntry, dataEntry);    } catch (DatabaseException e) {      e.printStackTrace();    } catch (UnsupportedEncodingException e) {      e.printStackTrace();    } catch (Exception e) {      e.printStackTrace();    }  }  public static Object load(String key){    DatabaseEntry keyEntry;    DatabaseEntry dataEntry;    try {      keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));      dataEntry = new DatabaseEntry();      if (myDatabase.get(null, keyEntry, dataEntry, LockMode.DEFAULT) == OperationStatus.SUCCESS) {        return fromBytes(dataEntry.getData());      } else {        System.err.println("Can't find " + key);        return null;      }    } catch (DatabaseException e) {      e.printStackTrace();      return null;    } catch (UnsupportedEncodingException e) {      e.printStackTrace();      return null;    } catch (Exception e) {      e.printStackTrace();      return null;    }  }  public static void delete(String key){    try {      DatabaseEntry keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));      myDatabase.delete(null, keyEntry);     } catch (Exception e) {      e.printStackTrace();    }  }}PARSER_END(SimpleDBMSParser)SKIP : { " " | "\r" | "\t" | "\n" }
+      	break;
+      case PRINT_DROP_TABLE:
+      	break;
+      case PRINT_DESC:
+      	break;
+      case PRINT_SHOW_TABLES:
+      	break;
+      case PRINT_INSERT:
+      	System.out.println("\'INSERT\' requested");
+      	break;
+      case PRINT_DELETE:
+      	System.out.println("\'DELETE\' requested");
+      	break;
+      case PRINT_SELECT:
+      	System.out.println("\'SELECT\' requested");
+      	break;
+      default:
+        break;
+    }
+  }
+
+  public static byte[] toBytes(Object object){
+    ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+    try {
+      ObjectOutputStream out = new ObjectOutputStream(byteOut);
+      out.writeObject(object);
+      return byteOut.toByteArray();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public static Object fromBytes(byte[] bytes){
+    ByteArrayInputStream byteIn = new ByteArrayInputStream(bytes);
+    try {
+      ObjectInputStream in = new ObjectInputStream(byteIn);
+      return in.readObject();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public static void save(String key, Object data){
+    DatabaseEntry keyEntry;
+    DatabaseEntry dataEntry;
+    delete(key);
+    try {
+      keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
+      dataEntry = new DatabaseEntry(toBytes(data));
+      myDatabase.put(null, keyEntry, dataEntry);
+    } catch (DatabaseException e) {
+      e.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  public static Object load(String key){
+    DatabaseEntry keyEntry;
+    DatabaseEntry dataEntry;
+    try {
+      keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
+      dataEntry = new DatabaseEntry();
+      if (myDatabase.get(null, keyEntry, dataEntry, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+        return fromBytes(dataEntry.getData());
+      } else {
+        System.err.println("Can't find " + key);
+        return null;
+      }
+    } catch (DatabaseException e) {
+      e.printStackTrace();
+      return null;
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+      return null;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+  public static void delete(String key){
+    try {
+      DatabaseEntry keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
+      myDatabase.delete(null, keyEntry); 
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+PARSER_END(SimpleDBMSParser)
+
+SKIP : { " " | "\r" | "\t" | "\n" }
 
 TOKEN : /* Keywords */
 {
-  < EXIT : "exit" >| < CREATE : "create" >
+  < EXIT : "exit" >
+| < CREATE : "create" >
 | < INT : "int" >
 | < CHAR : "char" >
-| < DATE : "date" >| < PRIMARY : "primary" >| < FOREIGN : "foreign" >| < KEY : "key" >| < REFERENCES : "references" >| < DROP : "drop" >| < TABLE : "table" >| < DESC : "desc" >| < SHOW : "show" >| < TABLES : "tables" >| < SELECT : "select" >| < STAR : "*" >| < AS : "as" >| < FROM : "from" >| < INSERT : "insert" >| < INTO : "into" >| < VALUES : "values" >| < DELETE : "delete" >| < WHERE : "where" >| < OR : "or" >| < AND : "and" >| < IS : "is" >| < NOT : "not" >| < NULL : "null" >}TOKEN :{  < SEMICOLON : ";" >| < LEFT_PAREN : "(" >| < RIGHT_PAREN : ")" >| < COMMA : "," >| < PERIOD : "." >| < UNDERSCORE : "_" >| < GREATER : ">" >| < LESS : "<" >| < EQUAL : "=" >| < GREATER_OR_EQUAL : ">=" >| < LESS_OR_EQUAL : "<=" >| < NOT_EQUAL : "!=" >| < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >| < INT_VALUE : (< SIGN >)? (< DIGIT >)+ >| < SIGN : "+" | "-" >| < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >| < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >| < NN : < DIGIT > < DIGIT > >| < CHAR_STRING : < QUOTE > (< NON_QUOTE_CHARACTER >)* < QUOTE > >| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | < NON_QUOTE_SPECIAL_CHARACTER > | " " >| < DIGIT : [ "0"-"9" ] >| < ALPHABET : [ "A"-"Z", "a"-"z" ] >| < NON_QUOTE_SPECIAL_CHARACTER : ~["'", "\""] >| < QUOTE : "\"" | "'" >} // 먼저 나와서 밑의 것을 덮을 위험이 있는 것들은 밑으로 빼냄 (더 좁은 의미를 위로)
+| < DATE : "date" >
+| < PRIMARY : "primary" >
+| < FOREIGN : "foreign" >
+| < KEY : "key" >
+| < REFERENCES : "references" >
+| < DROP : "drop" >
+| < TABLE : "table" >
+| < DESC : "desc" >
+| < SHOW : "show" >
+| < TABLES : "tables" >
+| < SELECT : "select" >
+| < STAR : "*" >
+| < AS : "as" >
+| < FROM : "from" >
+| < INSERT : "insert" >
+| < INTO : "into" >
+| < VALUES : "values" >
+| < DELETE : "delete" >
+| < WHERE : "where" >
+| < OR : "or" >
+| < AND : "and" >
+| < IS : "is" >
+| < NOT : "not" >
+| < NULL : "null" >
+}
+
+TOKEN :
+{
+  < SEMICOLON : ";" >
+| < LEFT_PAREN : "(" >
+| < RIGHT_PAREN : ")" >
+| < COMMA : "," >
+| < PERIOD : "." >
+| < UNDERSCORE : "_" >
+| < GREATER : ">" >
+| < LESS : "<" >
+| < EQUAL : "=" >
+| < GREATER_OR_EQUAL : ">=" >
+| < LESS_OR_EQUAL : "<=" >
+| < NOT_EQUAL : "!=" >
+| < LEGAL_IDENTIFIER : < ALPHABET > (< ALPHABET > | < UNDERSCORE >)* >
+| < INT_VALUE : (< SIGN >)? (< DIGIT >)+ >
+| < SIGN : "+" | "-" >
+| < DATE_VALUE : < NNNN > "-" < NN > "-" < NN > >
+| < NNNN : < DIGIT > < DIGIT > < DIGIT > < DIGIT > >
+| < NN : < DIGIT > < DIGIT > >
+| < CHAR_STRING : < QUOTE > (< NON_QUOTE_CHARACTER >)* < QUOTE > >
+| < NON_QUOTE_CHARACTER : < DIGIT > | < ALPHABET > | < NON_QUOTE_SPECIAL_CHARACTER > | " " >
+| < DIGIT : [ "0"-"9" ] >
+| < ALPHABET : [ "A"-"Z", "a"-"z" ] >
+| < NON_QUOTE_SPECIAL_CHARACTER : ~["'", "\""] >
+| < QUOTE : "\"" | "'" >
+}
+ // 먼저 나와서 밑의 것을 덮을 위험이 있는 것들은 밑으로 빼냄 (더 좁은 의미를 위로)
 
 void command() :
-{}{  queryList()
+{}
+{
+  queryList()
 | (
     < EXIT >
     < SEMICOLON >
-    {      save("tables-schema", tables);      if (myDatabase != null) myDatabase.close();      if (myDbEnvironment != null) myDbEnvironment.close();      System.exit(0);
+    {
+      save("tables-schema", tables);
+      if (myDatabase != null) myDatabase.close();
+      if (myDbEnvironment != null) myDbEnvironment.close();
+      System.exit(0);
     }
-  )}
+  )
+}
 
 void queryList() :
-{}{
-  (    q = query()
-    {      System.out.print("DB_2014-11663> ");      printMessage(q);
+{}
+{
+  (
+    q = query()
+    {
+      System.out.print("DB_2014-11663> ");
+      printMessage(q);
     }
-  )+}
+  )+
+}
 
 Message query() :
 {
   q = Message.NONE;
-}{  (    createTableQuery()    {      q = Message.PRINT_CREATE_TABLE;    }  | dropTableQuery()    {      q = Message.PRINT_DROP_TABLE;    }  | showQuery()    {      q = Message.PRINT_SHOW_TABLES;    }  | descQuery()    {      q = Message.PRINT_DESC;    }  | selectQuery()    {      q = Message.PRINT_SELECT;    }  | insertQuery()    {      q = Message.PRINT_INSERT;    }  | deleteQuery()    {      q = Message.PRINT_DELETE;    }
+}
+{
+  (
+    createTableQuery()
+    {
+      q = Message.PRINT_CREATE_TABLE;
+    }
+  | dropTableQuery()
+    {
+      q = Message.PRINT_DROP_TABLE;
+    }
+  | showQuery()
+    {
+      q = Message.PRINT_SHOW_TABLES;
+    }
+  | descQuery()
+    {
+      q = Message.PRINT_DESC;
+    }
+  | selectQuery()
+    {
+      q = Message.PRINT_SELECT;
+    }
+  | insertQuery()
+    {
+      q = Message.PRINT_INSERT;
+    }
+  | deleteQuery()
+    {
+      q = Message.PRINT_DELETE;
+    }
   )
-  (    {      return q;
+  (
+    {
+      return q;
     }
   )
 }
 
 void createTableQuery() :
-{  String tableName;  Table table;  ArrayList<TableElement> tableElementList;}{  < CREATE > < TABLE >
-  tableName = tableName()  tableElementList = tableElementList()  < SEMICOLON >  {    schema.tableConstraint.ForeignKey.tables = tables;    try {      if (tables.containsKey(tableName)) throw new TableExistenceError();      table = Table.createTable(tableName, tableElementList);      tables.put(tableName, table);      System.out.println("'" + tableName + "' table is created");    } catch (CreateTableException e) {      System.out.println(e.getMessage());    } catch (Exception e) {      System.err.println(getToken(0).image);      e.printStackTrace();    }  }  {    // 다 만들고    // 테이블 해시에 있는 지 검사    // 있으면 익셉션    // 없으면 넣고 디비에 저장  }
+{
+  String tableName;
+  Table table;
+  ArrayList<TableElement> tableElementList;
+}
+{
+  < CREATE > < TABLE >
+  tableName = tableName()
+  tableElementList = tableElementList()
+  < SEMICOLON >
+  {
+    schema.tableConstraint.ForeignKey.tables = tables;
+    try {
+      if (tables.containsKey(tableName)) throw new TableExistenceError();
+      table = Table.createTable(tableName, tableElementList);
+      tables.put(tableName, table);
+      System.out.println("'" + tableName + "' table is created");
+    } catch (CreateTableException e) {
+      System.out.println(e.getMessage());
+    } catch (Exception e) {
+      System.err.println(getToken(0).image);
+      e.printStackTrace();
+    }
+  }
 }
 
 ArrayList<TableElement> tableElementList() :
-{  ArrayList<TableElement> tableElementList = new ArrayList<TableElement>();}{
-  < LEFT_PAREN >  {
-    tableElementList.add(tableElement());  }
-  (    < COMMA >    {     tableElementList.add(tableElement());    }
+{
+  ArrayList<TableElement> tableElementList = new ArrayList<TableElement>();
+}
+{
+  < LEFT_PAREN >
+  {
+    tableElementList.add(tableElement());
+  }
+  (
+    < COMMA >
+    {
+     tableElementList.add(tableElement());
+    }
   )*
-  < RIGHT_PAREN >  {    return tableElementList;  }}
+  < RIGHT_PAREN >
+  {
+    return tableElementList;
+  }
+}
 
 TableElement tableElement() :
-{  TableElement tableElement = null;}{
-  tableElement = columnDefinition()  {    return tableElement;  }
-| tableElement = tableConstraintDefinition()  {    return tableElement;  }}
+{
+  TableElement tableElement = null;
+}
+{
+  tableElement = columnDefinition()
+  {
+    return tableElement;
+  }
+| tableElement = tableConstraintDefinition()
+  {
+    return tableElement;
+  }
+}
 
 Column columnDefinition() :
-{  String columnName;  DataType dataType;  Boolean nullable = true;}{  columnName = columnName()
+{
+  String columnName;
+  DataType dataType;
+  Boolean nullable = true;
+}
+{
+  columnName = columnName()
   dataType = dataType()
-  (    < NOT > < NULL >    {      nullable = false;    }
-  )?  {    return new Column(columnName, dataType, nullable);  }
-}DataType dataType() :{  Integer length;}{  < INT >  {    return new Int();  }| (    < CHAR >    < LEFT_PAREN >    < INT_VALUE >    {      Token token = getToken(0);      length = Integer.parseInt(token.image);    }    < RIGHT_PAREN >  )  {    return new Char(length);  }| < DATE >  {    return new Date();  }}
+  (
+    < NOT > < NULL >
+    {
+      nullable = false;
+    }
+  )?
+  {
+    return new Column(columnName, dataType, nullable);
+  }
+}
+
+DataType dataType() :
+{
+  Integer length;
+}
+{
+  < INT >
+  {
+    return new Int();
+  }
+| (
+    < CHAR >
+    < LEFT_PAREN >
+    < INT_VALUE >
+    {
+      Token token = getToken(0);
+      length = Integer.parseInt(token.image);
+    }
+    < RIGHT_PAREN >
+  )
+  {
+    return new Char(length);
+  }
+| < DATE >
+  {
+    return new Date();
+  }
+}
 
 TableConstraint tableConstraintDefinition() :
-{  TableConstraint tableConstratint;}{  tableConstratint = primaryKeyConstraint()  {    return tableConstratint;  }
-| tableConstratint = referentialConstraint()  {    return tableConstratint;  }
+{
+  TableConstraint tableConstratint;
+}
+{
+  tableConstratint = primaryKeyConstraint()
+  {
+    return tableConstratint;
+  }
+| tableConstratint = referentialConstraint()
+  {
+    return tableConstratint;
+  }
 }
 
 PrimaryKey primaryKeyConstraint() :
-{  ArrayList<String> columnNameList;}{
+{
+  ArrayList<String> columnNameList;
+}
+{
   < PRIMARY > < KEY >
-  columnNameList = columnNameList()  {    return new PrimaryKey(columnNameList);  }}
+  columnNameList = columnNameList()
+  {
+    return new PrimaryKey(columnNameList);
+  }
+}
 
 schema.tableConstraint.ForeignKey referentialConstraint() :
-{  ArrayList<String> columnNameList;  String tableName;  ArrayList<String> referenceColumnNameList;}{
+{
+  ArrayList<String> columnNameList;
+  String tableName;
+  ArrayList<String> referenceColumnNameList;
+}
+{
   < FOREIGN > < KEY >
   columnNameList = columnNameList()
   < REFERENCES >
   tableName = tableName()
-  referenceColumnNameList = columnNameList()  {    return new schema.tableConstraint.ForeignKey(columnNameList, tableName, referenceColumnNameList);  }}void dropTableQuery() :{  ArrayList<String> tableNameList;}{  // table name list에 있는 테이블을 골라서 없애버림 (null로) 그 후 테이블 리스트에서도 삭제  < DROP > < TABLE >  tableNameList = tableNameList()  < SEMICOLON >  {    try {      if (tableNameList == null) {        tables = new HashMap<String, Table>();        System.out.println("Every table is dropped");      }      else {        for (String tableName : tableNameList) {          if (!tables.containsKey(tableName)) {            System.out.println("No such table");          } else if (tables.get(tableName).isReferenced(new ArrayList<Table>(tables.values()))) {            System.out.println("Drop table has failed: '" + tableName + "' is referenced by other table");          } else {            tables.remove(tableName);            System.out.println("'" + tableName + "' table is dropped");          }        }      }    } catch (Exception e) {      e.printStackTrace();    }  }}void showQuery() :{}{  // 현재 있는 테이블 목록을 보여줌  < SHOW > < TABLES > < SEMICOLON >  {    for (String tableName : tables.keySet()) {      System.out.println(tableName);    }  }}void descQuery() :{  ArrayList<String> tableNameList;}{  // 구성을 보여줌  < DESC >  tableNameList = tableNameList()  < SEMICOLON >  {    try {      if (tableNameList == null) {        if (tables.values().size() == 0) {          return;        }        System.out.println("-------------------------------------------------");        for (Table table : tables.values())        {          table.describeTable();          System.out.println("-------------------------------------------------");        }      } else {        for (String tableName : tableNameList) {          if (!tables.containsKey(tableName)) {            System.out.println("No such table");            return;          }        }        System.out.println("-------------------------------------------------");        for (String tableName : tableNameList) {          tables.get(tableName).describeTable();          System.out.println("-------------------------------------------------");        }      }    } catch (Exception e) {      e.printStackTrace();    }  }}ArrayList<String> tableNameList() :{  ArrayList<String> tableNameList = new ArrayList<String>();  String tableName;}{  // 모두나 이어붙인 스트링 어레이 반환  < STAR >  {    return null;  }| tableName = tableName()  {    tableNameList.add(tableName);  }  (    < COMMA >    tableName = tableName()    {      tableNameList.add(tableName);    }  )*  {    return tableNameList;  }}void selectQuery() :{}{  // table expression에서 selectList인 것들만 반환  < SELECT >  selectList()  tableExpression()  < SEMICOLON >}void selectList() :{}{  // 전부 다 나 밑의 스트링 어레이 리턴  < STAR >| selectedColumn()  (    < COMMA >    selectedColumn()  )*  /* 나중에 String Array 반환 */}void selectedColumn() :{}{  // 이에 맞는 키 값만 찾아서 리스트로 구성 후 리턴..?  (    LOOKAHEAD(5)    tableName()    < PERIOD >  )?  columnName()  (    < AS >    columnName()  )?	}void tableExpression() :{}{  // from의 결과를 where에 넣어서 비교해서 골라내서 리턴  fromClause()  (    whereClause()  )*}void fromClause() :{}{  // table의 정보를 리턴  < FROM >  tableReferenceList()}void tableReferenceList() :{}{  // 받은 것을 계속 이어 붙여 나간 리스트를 반환. 아니면 expend한 hash?  referedTable()  (    < COMMA >    referedTable()  )*}void referedTable() :{}{  // 앞의 것의 내용을 뒤의 것의 이름으로 리턴   tableName()  (    < AS >    tableName()  )?}void predicate() :{}{  // 계산 결과를 리턴  LOOKAHEAD(4) // 이 밑의 것들은 <LEGAL_ID>가 계속 나와서 4번은 미리 봐두어야 함  comparisonPredicate()| nullPredicate()}void comparisonPredicate() :{}{  // comp operand가 같은 타입인지 확인도 해야할 것 같고 일단 comp operator에 맞게 계산한 boolean을 리턴  compOperand()  compOp()  compOperand()}void compOperand() :{}{  comparableValue()| (    LOOKAHEAD(2) // table name인지 column name인지 2번은 미리 확인해야한다    tableName()    < PERIOD >  )?  columnName()}void compOp() :{}{  // comp operator에 따라 integer을 리턴   (    < LESS >    {          }  | < GREATER >    {          }  | < EQUAL >    {          }  | < GREATER_OR_EQUAL >    {          }  | < LESS_OR_EQUAL >    {          }  | < NOT_EQUAL >    {          }  )  (    {          }  )}void nullPredicate() :{}{  // table name의 column name이 (not) null 인지 확인한 boolean을 리턴  (    LOOKAHEAD(2) // table name인지 column name인지 2번은 미리 확인해야한다    tableName()    < PERIOD >  )?  columnName()  < IS >  (    < NOT >  )?  < NULL >}void insertQuery() :{}{  // table name인 테이블 레코드에 밑의 것을 추가시킨다. table name의 컬럼들을 살펴보고 부족하면 그 부분은 null로 한다 (not null 인지 확인도) 이상한 키값이 있으면 에러  < INSERT > < INTO >  tableName()  insertColumnsAndSource()  < SEMICOLON >}void insertColumnsAndSource() :{}{  // column name list 가 있으면 그것을 키로 하여 value list를 하나씩 구성한다. 둘 다 array list로 받고 순서대로 짝지어주는 것이 좋을 것 같음  (    columnNameList()  )?  valueList()}ArrayList<String> columnNameList() :{  ArrayList<String> columnNameList = new ArrayList<String>();}{  // column name들을 리스트로 넘겨준다  < LEFT_PAREN >  {    columnNameList.add(columnName());  }  (    < COMMA >    {      columnNameList.add(columnName());    }  )*  < RIGHT_PAREN >  {    return columnNameList;  }}String columnName() :{  Token token;  String columnName = "";}{  // column name을 string으로 넘겨준다  < LEGAL_IDENTIFIER >  {    token = getToken(0);    columnName = token.image;    return columnName.toLowerCase();  }}void valueList() :{}{  // value list를 어레이나 해시 테이블로 넘겨주어야 할 것만 같다. 키는 주어준 것을 사용하거나 1st 2nd 3rd 같은 임시의 것을 사용하는 것이 좋을지도  < VALUES >  < LEFT_PAREN >  value()  (    < COMMA >    value()  )*  < RIGHT_PAREN >}void value() :{}{  // null을 리턴하거나 comparable value을 리턴  < NULL >| comparableValue()}void comparableValue() :{}{  // integer, string, string 으로 계산해서 리턴  < INT_VALUE >| < CHAR_STRING >| < DATE_VALUE >}void deleteQuery() :{}{  // 데베 자료구조에서 table 네임을 찾아서 그 멤버들을 where절이 있으면 조건에 맞나 확인하고 없애고 아니면 그냥 비워버린다  < DELETE > < FROM >  tableName()  (    whereClause()  )?  < SEMICOLON >}String tableName() :{  Token token;  String tableName = "";}{  // 테이블 이름을 받아서 string으로 리턴  < LEGAL_IDENTIFIER >  {    token = getToken(0);    tableName = token.image;	return tableName.toLowerCase();  }}void whereClause() :{}{  // boolean value expression 을 계산해서 리턴 (어디에 담아두고 리턴?)  < WHERE >  booleanValueExpression()}void booleanValueExpression() :{}{  // boolean value expression이 있으면 받아서 or해서 리턴  booleanTerm()  (    < OR >    booleanValueExpression()  )?}void booleanTerm() :{}{  // boolean term이 있으면 받아서 and해서 리턴  booleanFactor()  (    < AND >    booleanTerm()  )?}void booleanFactor() :{}{  // not이 있으면 not을 붙여서 리턴하고 아니면 boolean test를 리턴  (    < NOT >  )?  booleanTest()}void booleanTest() :{}{  // predicate와 parenthesized boolean expression을 리턴해야 함  predicate()| parenthesizedBooleanExpression()}void parenthesizedBooleanExpression() :{}{  // boolean value expression을 리턴해야 함  < LEFT_PAREN >  booleanValueExpression()  < RIGHT_PAREN >}
+  referenceColumnNameList = columnNameList()
+  {
+    return new schema.tableConstraint.ForeignKey(columnNameList, tableName, referenceColumnNameList);
+  }
+}
+
+void dropTableQuery() :
+{
+  ArrayList<String> tableNameList;
+}
+{
+  // table name list에 있는 테이블을 골라서 없애버림 (null로) 그 후 테이블 리스트에서도 삭제
+  < DROP > < TABLE >
+  tableNameList = tableNameList()
+  < SEMICOLON >
+  {
+    try {
+      if (tableNameList == null) {
+        tables = new HashMap<String, Table>();
+        System.out.println("Every table is dropped");
+      }
+      else {
+        for (String tableName : tableNameList) {
+          if (!tables.containsKey(tableName)) {
+            System.out.println("No such table");
+          } else if (tables.get(tableName).isReferenced(new ArrayList<Table>(tables.values()))) {
+            System.out.println("Drop table has failed: '" + tableName + "' is referenced by other table");
+          } else {
+            tables.remove(tableName);
+            System.out.println("'" + tableName + "' table is dropped");
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+void showQuery() :
+{}
+{
+  // 현재 있는 테이블 목록을 보여줌  < SHOW > < TABLES > < SEMICOLON >
+  {
+    for (String tableName : tables.keySet()) {
+      System.out.println(tableName);
+    }
+  }
+}
+
+void descQuery() :
+{
+  ArrayList<String> tableNameList;
+}
+{
+  // 구성을 보여줌  < DESC >
+  tableNameList = tableNameList()
+  < SEMICOLON >
+  {
+    try {
+      if (tableNameList == null) {
+        if (tables.values().size() == 0) {
+          return;
+        }
+        System.out.println("-------------------------------------------------");
+        for (Table table : tables.values())
+        {
+          table.describeTable();
+          System.out.println("-------------------------------------------------");
+        }
+      } else {
+        for (String tableName : tableNameList) {
+          if (!tables.containsKey(tableName)) {
+            System.out.println("No such table");
+            return;
+          }
+        }
+        System.out.println("-------------------------------------------------");
+        for (String tableName : tableNameList) {
+          tables.get(tableName).describeTable();
+          System.out.println("-------------------------------------------------");
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+ArrayList<String> tableNameList() :
+{
+  ArrayList<String> tableNameList = new ArrayList<String>();
+  String tableName;
+}
+{
+  // 모두나 이어붙인 스트링 어레이 반환
+  < STAR >
+  {
+    return null;
+  }
+| tableName = tableName()
+  {
+    tableNameList.add(tableName);
+  }
+  (
+    < COMMA >
+    tableName = tableName()
+    {
+      tableNameList.add(tableName);
+    }
+  )*
+  {
+    return tableNameList;
+  }
+}
+
+void selectQuery() :
+{}
+{
+  // table expression에서 selectList인 것들만 반환
+  < SELECT >
+  selectList()
+  tableExpression()
+  < SEMICOLON >
+}
+
+void selectList() :
+{}
+{
+  // 전부 다 나 밑의 스트링 어레이 리턴
+  < STAR >
+| selectedColumn()
+  (
+    < COMMA >
+    selectedColumn()
+  )*
+  /* 나중에 String Array 반환 */
+}
+
+void selectedColumn() :
+{}
+{
+  // 이에 맞는 키 값만 찾아서 리스트로 구성 후 리턴..?
+  (
+    LOOKAHEAD(5)
+    tableName()
+    < PERIOD >
+  )?
+  columnName()
+  (
+    < AS >
+    columnName()
+  )?
+}
+
+void tableExpression() :
+{}
+{
+  // from의 결과를 where에 넣어서 비교해서 골라내서 리턴
+  fromClause()
+  (
+    whereClause()
+  )*
+}
+
+void fromClause() :
+{}
+{
+  // table의 정보를 리턴
+  < FROM >
+  tableReferenceList()
+}
+
+void tableReferenceList() :
+{}
+{
+  // 받은 것을 계속 이어 붙여 나간 리스트를 반환. 아니면 expend한 hash?
+  referedTable()
+  (
+    < COMMA >
+    referedTable()
+  )*
+}
+
+void referedTable() :
+{}
+{
+  // 앞의 것의 내용을 뒤의 것의 이름으로 리턴 
+  tableName()
+  (
+    < AS >
+    tableName()
+  )?
+}
+
+void insertQuery() :
+{
+  String tableName;
+  ArrayList<String> columnNameList;
+  ArrayList<Object> objectList;
+  HashMap<String, Object> sources;
+}
+{
+  // table name인 테이블 레코드에 밑의 것을 추가시킨다. table name의 컬럼들을 살펴보고 부족하면 그 부분은 null로 한다 (not null 인지 확인도) 이상한 키값이 있으면 에러
+  < INSERT > < INTO >
+  tableName = tableName()
+  sources = insertColumnsAndSource()
+  < SEMICOLON >
+  {
+    Table table = tables.get(tableName);
+    if (table == null) {
+      System.out.println("No such table");
+      return;
+    }
+    columnNameList = (ArrayList<String>)sources.get("columnNameList");
+    if (columnNameList == null) {
+      columnNameList = table.getAllColumnsName();
+    }
+    objectList = (ArrayList<Object>)sources.get("objectList");
+    for (int i = 0; i < columnNameList.size(); i++)
+    {
+      System.out.println(columnNameList.get(i) +" "+ objectList.get(i));
+    }
+  }
+}
+
+HashMap<String, Object> insertColumnsAndSource() :
+{
+  ArrayList<String> columnNameList = null;
+  ArrayList<Object> objectList;
+  HashMap<String, Object> sources = new HashMap<String, Object>();
+}
+{
+  // column name list 가 있으면 그것을 키로 하여 value list를 하나씩 구성한다. 둘 다 array list로 받고 순서대로 짝지어주는 것이 좋을 것 같음
+  (
+    columnNameList = columnNameList()
+  )?
+  objectList = valueList()
+  {
+    sources.put("columnNameList", columnNameList);
+    sources.put("objectList", objectList);
+    return sources;
+  }
+}
+
+ArrayList<String> columnNameList() :
+{
+  ArrayList<String> columnNameList = new ArrayList<String>();
+}
+{
+  // column name들을 리스트로 넘겨준다  < LEFT_PAREN >
+  {
+    columnNameList.add(columnName());
+  }
+  (
+    < COMMA >
+    {
+      columnNameList.add(columnName());
+    }
+  )*
+  < RIGHT_PAREN >
+  {
+    return columnNameList;
+  }
+}
+
+String columnName() :
+{
+  Token token;
+  String columnName = "";
+}
+{
+  // column name을 string으로 넘겨준다  < LEGAL_IDENTIFIER >
+  {
+    token = getToken(0);
+    columnName = token.image;
+    return columnName.toLowerCase();
+  }
+}
+
+ArrayList<Object> valueList() :
+{
+  ArrayList<Object> objectList = new ArrayList<Object>();
+  Object object;
+}
+{
+  // value list를 어레이나 해시 테이블로 넘겨주어야 할 것만 같다. 키는 주어준 것을 사용하거나 1st 2nd 3rd 같은 임시의 것을 사용하는 것이 좋을지도  < VALUES >
+  < LEFT_PAREN >
+  object = value()
+  {
+    objectList.add(object);
+  }
+  (
+    < COMMA >
+    object = value()
+    {
+      objectList.add(object);
+    }
+  )*
+  < RIGHT_PAREN >
+  {
+    return objectList;
+  }
+}
+
+Object value() :
+{
+  Object object;
+}
+{
+  // null을 리턴하거나 comparable value을 리턴
+  < NULL >
+  {
+    return null;
+  }
+| object = comparableValue()
+  {
+    return object;
+  }
+}
+
+Object comparableValue() :
+{}
+{
+  // integer, string, string 으로 계산해서 리턴
+  < INT_VALUE >
+  {
+    return Integer.parseInt(getToken(0).image);
+  }
+| < CHAR_STRING >
+  {
+    return getToken(0).image.substring(1, getToken(0).image.length() - 1);
+  }
+| < DATE_VALUE >
+  {
+    return getToken(0).image;
+  }
+}
+
+void deleteQuery() :
+{
+  String tableName;
+}
+{
+  // 데베 자료구조에서 table 네임을 찾아서 그 멤버들을 where절이 있으면 조건에 맞나 확인하고 없애고 아니면 그냥 비워버린다  < DELETE > < FROM >
+  tableName = tableName()
+  (
+    whereClause()
+  )?
+  < SEMICOLON >
+  {
+    // relation 찾고
+    // 없으면 No Such
+    // 있으면 try catch
+  }
+}
+
+String tableName() :
+{
+  Token token;
+  String tableName = "";
+}
+{
+  // 테이블 이름을 받아서 string으로 리턴
+  < LEGAL_IDENTIFIER >
+  {
+    token = getToken(0);
+    tableName = token.image;
+	return tableName.toLowerCase();
+  }
+}
+
+WhereClause whereClause() :
+{
+  BooleanValueExpression booleanValueExpression;
+}
+{
+  // boolean value expression 을 계산해서 리턴 (어디에 담아두고 리턴?)
+  < WHERE >
+  booleanValueExpression = booleanValueExpression()
+  {
+    return new WhereClause(booleanValueExpression);
+  }
+}
+
+BooleanValueExpression booleanValueExpression() :
+{
+  BooleanValueExpression booleanValueExpression = new BooleanValueExpression();
+  BooleanValue booleanValue;
+}
+{
+  booleanValue = booleanTerm()
+  {
+    booleanValueExpression.add(booleanValue);
+  }
+  (
+    < OR >
+    booleanValue = booleanValueExpression()
+    {
+      booleanValueExpression.add(booleanValue);
+    }
+  )?
+  {
+    return booleanValueExpression;
+  }
+}
+
+BooleanValue booleanTerm() :
+{
+  BooleanTerm booleanTerm = new BooleanTerm();
+  BooleanValue booleanValue;
+}
+{
+  // boolean term이 있으면 받아서 and해서 리턴
+  booleanValue = booleanFactor()
+  {
+    booleanTerm.add(booleanValue);
+  }
+  (
+    < AND >
+    booleanValue = booleanTerm()
+    {
+      booleanTerm.add(booleanValue);
+    }
+  )?
+  {
+    return booleanTerm;
+  }
+}
+
+BooleanValue booleanFactor() :
+{
+  boolean isNot = false;
+  BooleanValue booleanValue;
+}
+{
+  // not이 있으면 not을 붙여서 리턴하고 아니면 boolean test를 리턴
+  (
+    < NOT >
+    {
+      isNot = true;
+    }
+  )?
+  booleanValue = booleanTest()
+  {
+    return new BooleanFactor(isNot, booleanValue);
+  }
+}
+
+BooleanValue booleanTest() :
+{
+  BooleanValue booleanValue;
+  Predicate predicate;
+}
+{
+  // predicate와 parenthesized boolean expression을 리턴해야 함  predicate = predicate()
+  {
+    return new BooleanTest(predicate);
+  }
+| booleanValue = parenthesizedBooleanExpression()
+  {
+    return booleanValue;
+  }
+}
+
+Predicate predicate() :
+{
+  Predicate predicate;
+}
+{
+  // 계산 결과를 리턴
+  LOOKAHEAD(4) // 이 밑의 것들은 <LEGAL_ID>가 계속 나와서 4번은 미리 봐두어야 함  predicate = comparisonPredicate()
+  {
+    return predicate;
+  }
+| predicate = nullPredicate()
+  {
+    return predicate;
+  }
+}
+
+ComparisonPredicate comparisonPredicate() :
+{}
+{
+  // comp operand가 같은 타입인지 확인도 해야할 것 같고 일단 comp operator에 맞게 계산한 boolean을 리턴
+  compOperand()
+  compOp()
+  compOperand()
+  {
+    return new ComparisonPredicate();
+  }
+}
+
+void compOperand() :
+{}
+{
+  comparableValue()
+| (
+    LOOKAHEAD(2) // table name인지 column name인지 2번은 미리 확인해야한다
+    tableName()
+    < PERIOD >
+  )?
+  columnName()
+}
+
+void compOp() :
+{}
+{
+  // comp operator에 따라 integer을 리턴 
+  (
+    < LESS >
+    {
+      
+    }
+  | < GREATER >
+    {
+      
+    }
+  | < EQUAL >
+    {
+      
+    }
+  | < GREATER_OR_EQUAL >
+    {
+      
+    }
+  | < LESS_OR_EQUAL >
+    {
+      
+    }
+  | < NOT_EQUAL >
+    {
+      
+    }
+  )
+  (
+    {
+      
+    }
+  )
+}
+
+NullPredicate nullPredicate() :
+{}
+{
+  // table name의 column name이 (not) null 인지 확인한 boolean을 리턴
+  (
+    LOOKAHEAD(2) // table name인지 column name인지 2번은 미리 확인해야한다
+    tableName()
+    < PERIOD >
+  )?
+  columnName()
+  < IS >
+  (
+    < NOT >
+  )?
+  < NULL >
+  {
+    return new NullPredicate();
+  }
+}
+
+BooleanValue parenthesizedBooleanExpression() :
+{
+  BooleanValue booleanValue;
+}
+{
+  // boolean value expression을 리턴해야 함  < LEFT_PAREN >
+  booleanValue = booleanValueExpression()
+  < RIGHT_PAREN >
+  {
+    return booleanValue;
+  }
+}

@@ -55,7 +55,14 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   public static Message q;
 
   public static Environment myDbEnvironment = null;
-  public static Database myDatabase = null;
+  public static EnvironmentConfig envConfig = new EnvironmentConfig();
+  public static DatabaseConfig dbConfig = new DatabaseConfig();
+  static {
+    envConfig.setAllowCreate(true);
+    myDbEnvironment = new Environment(new File("db/"), envConfig);
+    dbConfig.setAllowCreate(true);
+    dbConfig.setSortedDuplicates(true);
+  }
 
   public static HashMap<String, Table> tables = new HashMap<String, Table>();
 
@@ -63,17 +70,11 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   {
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
 
-    EnvironmentConfig envConfig = new EnvironmentConfig();
-    envConfig.setAllowCreate(true);
-    myDbEnvironment = new Environment(new File("db/"), envConfig);
+    Database myDatabase = myDbEnvironment.openDatabase(null, "table-schema", dbConfig);
 
-    DatabaseConfig dbConfig = new DatabaseConfig();
-    dbConfig.setAllowCreate(true);
-    dbConfig.setSortedDuplicates(true);
-    myDatabase = myDbEnvironment.openDatabase(null, "sampleDatabase", dbConfig);
-
-    tables = (HashMap<String, Table>) load("tables-schema");
+    tables = (HashMap<String, Table>) load("table-schema");
     if (tables == null) tables = new HashMap<String, Table>();
+    myDatabase.close();
 
     while (true)
     {
@@ -146,6 +147,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   }
 
   public static void save(String key, Object data){
+    Database myDatabase = myDbEnvironment.openDatabase(null, "db", dbConfig);
     DatabaseEntry keyEntry;
     DatabaseEntry dataEntry;
     delete(key);
@@ -153,6 +155,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
       dataEntry = new DatabaseEntry(toBytes(data));
       myDatabase.put(null, keyEntry, dataEntry);
+      myDatabase.close();
     } catch (DatabaseException e) {
       e.printStackTrace();
     } catch (UnsupportedEncodingException e) {
@@ -162,15 +165,18 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
   }
   public static Object load(String key){
+    Database myDatabase = myDbEnvironment.openDatabase(null, "db", dbConfig);
     DatabaseEntry keyEntry;
     DatabaseEntry dataEntry;
     try {
       keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
       dataEntry = new DatabaseEntry();
       if (myDatabase.get(null, keyEntry, dataEntry, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+        myDatabase.close();
         return fromBytes(dataEntry.getData());
       } else {
         System.err.println("Can't find " + key);
+        myDatabase.close();
         return null;
       }
     } catch (DatabaseException e) {
@@ -185,9 +191,11 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
   }
   public static void delete(String key){
+    Database myDatabase = myDbEnvironment.openDatabase(null, "db", dbConfig);
     try {
       DatabaseEntry keyEntry = new DatabaseEntry(key.getBytes("UTF-8"));
       myDatabase.delete(null, keyEntry);
+      myDatabase.close();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -208,8 +216,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     case EXIT:
       jj_consume_token(EXIT);
       jj_consume_token(SEMICOLON);
-      save("tables-schema", tables);
-      if (myDatabase != null) myDatabase.close();
+      save("table-schema", tables);
       if (myDbEnvironment != null) myDbEnvironment.close();
       System.exit(0);
       break;
@@ -1055,23 +1062,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_10() {
-    if (jj_3R_11()) return true;
-    if (jj_3R_12()) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_20() {
-    if (jj_scan_token(NOT_EQUAL)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_19() {
-    if (jj_scan_token(LESS_OR_EQUAL)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_18() {
     if (jj_scan_token(GREATER_OR_EQUAL)) return true;
     return false;
@@ -1092,14 +1082,14 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_16() {
-    if (jj_scan_token(GREATER)) return true;
-    return false;
-  }
-
   static private boolean jj_3_1() {
     if (jj_3R_9()) return true;
     if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_16() {
+    if (jj_scan_token(GREATER)) return true;
     return false;
   }
 
@@ -1195,6 +1185,23 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
 
   static private boolean jj_3R_13() {
     if (jj_3R_21()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    if (jj_3R_11()) return true;
+    if (jj_3R_12()) return true;
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_20() {
+    if (jj_scan_token(NOT_EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_19() {
+    if (jj_scan_token(LESS_OR_EQUAL)) return true;
     return false;
   }
 

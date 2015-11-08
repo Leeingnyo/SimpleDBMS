@@ -21,4 +21,41 @@ public class ForeignKey implements Serializable {
 	public String getReferenceColumnName(){
 		return referenceColumnName;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime
+				* result
+				+ ((referenceColumnName == null) ? 0 : referenceColumnName
+						.hashCode());
+		result = prime
+				* result
+				+ ((referenceTableName == null) ? 0 : referenceTableName
+						.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ForeignKey other = (ForeignKey) obj;
+		if (referenceColumnName == null) {
+			if (other.referenceColumnName != null)
+				return false;
+		} else if (!referenceColumnName.equals(other.referenceColumnName))
+			return false;
+		if (referenceTableName == null) {
+			if (other.referenceTableName != null)
+				return false;
+		} else if (!referenceTableName.equals(other.referenceTableName))
+			return false;
+		return true;
+	}
 }

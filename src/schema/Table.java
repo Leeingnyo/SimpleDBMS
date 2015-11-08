@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import schema.column.DataType.Type;
+import schema.column.ForeignKey;
 import schema.exception.CharLengthError;
 import schema.exception.CreateTableException;
 import schema.exception.DuplicateColumnDefError;
@@ -88,8 +89,10 @@ public class Table implements Serializable {
 		for (Table table : tables){
 			for (Column nonselfColumn : table.getAllColumns()){
 				if (!nonselfColumn.isForeignKey()) continue;
-				if (tableName.equals(nonselfColumn.getForeignKey().getReferenceTableName()))
-					return true;
+				for (ForeignKey foreignKey : nonselfColumn.getForeignKeys()){
+					if (tableName.equals(foreignKey.getReferenceTableName()))
+						return true;
+				}
 			}
 		}
 		return false;

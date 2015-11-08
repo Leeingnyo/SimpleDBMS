@@ -290,7 +290,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     jj_consume_token(CREATE);
     jj_consume_token(TABLE);
     tableName = tableName();
-    tableElementList = tableElementList();
+    tableElementList = tableElementList(tableName);
     jj_consume_token(SEMICOLON);
     schema.tableConstraint.ForeignKey.tables = tables;
     try {
@@ -306,10 +306,10 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
   }
 
-  static final public ArrayList<TableElement> tableElementList() throws ParseException {
+  static final public ArrayList<TableElement> tableElementList(String tableName) throws ParseException {
   ArrayList<TableElement> tableElementList = new ArrayList<TableElement>();
     jj_consume_token(LEFT_PAREN);
-    tableElementList.add(tableElement());
+    tableElementList.add(tableElement(tableName));
     label_2:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -321,18 +321,18 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         break label_2;
       }
       jj_consume_token(COMMA);
-     tableElementList.add(tableElement());
+     tableElementList.add(tableElement(tableName));
     }
     jj_consume_token(RIGHT_PAREN);
     {if (true) return tableElementList;}
     throw new Error("Missing return statement in function");
   }
 
-  static final public TableElement tableElement() throws ParseException {
+  static final public TableElement tableElement(String tableName) throws ParseException {
   TableElement tableElement = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case LEGAL_IDENTIFIER:
-      tableElement = columnDefinition();
+      tableElement = columnDefinition(tableName);
     {if (true) return tableElement;}
       break;
     case PRIMARY:
@@ -348,7 +348,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  static final public Column columnDefinition() throws ParseException {
+  static final public Column columnDefinition(String tableName) throws ParseException {
   String columnName;
   DataType dataType;
   Boolean nullable = true;
@@ -364,7 +364,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       jj_la1[5] = jj_gen;
       ;
     }
-    {if (true) return new Column(columnName, dataType, nullable);}
+    {if (true) return new Column(tableName, columnName, dataType, nullable);}
     throw new Error("Missing return statement in function");
   }
 

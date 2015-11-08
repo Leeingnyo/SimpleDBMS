@@ -1,6 +1,7 @@
 package schema;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import schema.column.DataType;
 import schema.column.ForeignKey;
@@ -13,20 +14,24 @@ public class Column implements TableElement, Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1097837096321782137L;
+	private String tableName;
 	private String columnName;
 	private DataType dataType;
 	private Boolean nullable;
 	private Boolean isPrimaryKey;
-	private ForeignKey foreignKey;
+	private ArrayList<ForeignKey> foreignKeys;
 	
-	public Column(String columnName, DataType dataType, Boolean nullable){
+	public Column(String tableName, String columnName, DataType dataType, Boolean nullable){
+		this.tableName = tableName;
 		this.columnName = columnName;
 		this.dataType = dataType;
 		this.nullable = nullable;
 		this.isPrimaryKey = false;
-		this.foreignKey = null;
+		this.foreignKeys = new ArrayList<ForeignKey>();
 	}
-	
+	public String getTalbeName(){
+		return tableName;
+	}
 	public String getName(){
 		return columnName;
 	}
@@ -40,10 +45,10 @@ public class Column implements TableElement, Serializable {
 		return isPrimaryKey;
 	}
 	public Boolean isForeignKey(){
-		return foreignKey != null;
+		return foreignKeys.size() != 0;
 	}
-	public ForeignKey getForeignKey(){
-		return foreignKey;
+	public ArrayList<ForeignKey> getForeignKeys(){
+		return foreignKeys;
 	}
 	
 	public void setPrimaryKey() throws CreateTableException {
@@ -51,9 +56,9 @@ public class Column implements TableElement, Serializable {
 		nullable = false;
 		isPrimaryKey = true;
 	}
-	public void setForeignKey(ForeignKey foreignKey) throws CreateTableException {
-		if (this.foreignKey != null) throw new DuplicateColumnDefError();
-		this.foreignKey = foreignKey;
+	public void addForeignKey(ForeignKey foreignKey) throws CreateTableException {
+		if (this.foreignKeys.contains(foreignKey)) throw new DuplicateColumnDefError();
+		this.foreignKeys.add(foreignKey);
 	}
 	
 	@Override

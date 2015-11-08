@@ -346,7 +346,7 @@ void createTableQuery() :
 {
   < CREATE > < TABLE >
   tableName = tableName()
-  tableElementList = tableElementList()
+  tableElementList = tableElementList(tableName)
   < SEMICOLON >
   {
     schema.tableConstraint.ForeignKey.tables = tables;
@@ -364,19 +364,19 @@ void createTableQuery() :
   }
 }
 
-ArrayList<TableElement> tableElementList() :
+ArrayList<TableElement> tableElementList(String tableName) :
 {
   ArrayList<TableElement> tableElementList = new ArrayList<TableElement>();
 }
 {
   < LEFT_PAREN >
   {
-    tableElementList.add(tableElement());
+    tableElementList.add(tableElement(tableName));
   }
   (
     < COMMA >
     {
-     tableElementList.add(tableElement());
+     tableElementList.add(tableElement(tableName));
     }
   )*
   < RIGHT_PAREN >
@@ -385,12 +385,12 @@ ArrayList<TableElement> tableElementList() :
   }
 }
 
-TableElement tableElement() :
+TableElement tableElement(String tableName) :
 {
   TableElement tableElement = null;
 }
 {
-  tableElement = columnDefinition()
+  tableElement = columnDefinition(tableName)
   {
     return tableElement;
   }
@@ -400,7 +400,7 @@ TableElement tableElement() :
   }
 }
 
-Column columnDefinition() :
+Column columnDefinition(String tableName) :
 {
   String columnName;
   DataType dataType;
@@ -416,7 +416,7 @@ Column columnDefinition() :
     }
   )?
   {
-    return new Column(columnName, dataType, nullable);
+    return new Column(tableName, columnName, dataType, nullable);
   }
 }
 

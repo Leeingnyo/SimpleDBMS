@@ -36,7 +36,7 @@ public class ForeignKey implements TableConstraint {
 			if (!referenceTable.hasColumn(referenceColumnName)) throw new ReferenceColumnExistenceError();
 			if (!table.getColumn(columnName).getType().equals(referenceTable.getColumn(referenceColumnName).getType())) throw new ReferenceTypeError();
 			if (!referenceTable.getColumn(referenceColumnName).isPrimaryKey()) throw new ReferenceNonPrimaryKeyError();  
-			table.getColumn(columnName).setForeignKey(new schema.column.ForeignKey(referenceTable.getTableName(), referenceColumnName));
+			table.getColumn(columnName).addForeignKey(new schema.column.ForeignKey(referenceTable.getTableName(), referenceColumnName));
 		}
 	}
 

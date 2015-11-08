@@ -2,7 +2,7 @@ package schema;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import schema.column.DataType.Type;
 import schema.exception.CharLengthError;
@@ -17,14 +17,28 @@ public class Table implements Serializable {
 	 */
 	private static final long serialVersionUID = -5706316271954648061L;
 	String tableName;
-	HashMap<String, Column> columns;
+	LinkedHashMap<String, Column> columns;
 	Boolean hasPrimaryKey = false;
-	private ArrayList<String> primaryKeyList;
 	
 	public Table(String tableName){
 		this.tableName = tableName;
-		this.columns = new HashMap<String, Column>();
-		this.primaryKeyList = new ArrayList<String>();
+		this.columns = new LinkedHashMap<String, Column>();
+	}
+	
+	public Table(String tableName, LinkedHashMap<String, Column> columns){
+		this.tableName = tableName;
+		this.columns = columns;
+	}
+	
+	public Table rename(String rename){
+		return new Table(rename, this.columns);
+	}
+	
+	public static Table combineTable(String name, Table table1, Table table2){
+		LinkedHashMap<String, Column> columns = new LinkedHashMap<String, Column>();
+		columns.putAll(table1.columns);
+		columns.putAll(table2.columns);
+		return new Table(name, columns);
 	}
 	
 	public String getTableName(){
@@ -45,6 +59,10 @@ public class Table implements Serializable {
 		return new ArrayList<Column>(columns.values());
 	}
 	
+	public ArrayList<String> getAllColumnsName(){
+		return new ArrayList<String>(columns.keySet());
+	}
+	
 	public void describeTable(){
 		System.out.println("table_name [" + tableName + "]");
 		System.out.println("column_name\ttype\tnull\tkey");
@@ -59,7 +77,6 @@ public class Table implements Serializable {
 			Column column = this.columns.get(columnName);
 			if (column == null) throw new NonExistingColumnDefError(columnName);
 			column.setPrimaryKey();
-			primaryKeyList.add(columnName);
 		}
 		hasPrimaryKey = true;
 	}

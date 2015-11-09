@@ -61,8 +61,7 @@ public class Column implements TableElement, Serializable {
 		this.foreignKeys.add(foreignKey);
 	}
 	
-	@Override
-	public String toString(){
+	public String getInfo(){
 		String info = columnName + "\t" + dataType + "\t" + (nullable ? "Y" : "N");
 		if (isPrimaryKey && isForeignKey()){
 			info += "\t" + "PRI/FOR";
@@ -72,6 +71,11 @@ public class Column implements TableElement, Serializable {
 			info += "\t" + "FOR";
 		}
 		return info;
+	}
+	
+	@Override
+	public String toString() {
+		return columnName;
 	}
 
 	@Override

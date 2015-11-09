@@ -1,5 +1,5 @@
 package where.exception;
 
-public class WhereIncomparableError extends WhereClauseExcpetion {
+public class WhereIncomparableError extends WhereClauseException {
 
 }

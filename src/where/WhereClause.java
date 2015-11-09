@@ -1,6 +1,7 @@
 package where;
 
 import relation.Record;
+import where.exception.WhereClauseException;
 
 public class WhereClause {
 
@@ -10,7 +11,7 @@ public class WhereClause {
 		this.booleanValueExpression = booleanValueExpression;
 	}
 	
-	public boolean Test(Record record){
+	public boolean Test(Record record) throws WhereClauseException {
 		return booleanValueExpression.Test(record);
 	}
 }

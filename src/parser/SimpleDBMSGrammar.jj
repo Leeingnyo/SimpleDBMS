@@ -5,6 +5,7 @@ options
 }
 
 PARSER_BEGIN(SimpleDBMSParser)
+package parser;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -25,6 +26,12 @@ import schema.tableConstraint.*;
 import schema.column.*;
 import schema.exception.*;
 
+import relation.Relation;
+import relation.PrimaryKey;
+import relation.Record;
+import relation.ComparableValue;
+import relation.exception.*;
+
 import where.WhereClause;
 import where.BooleanValue;
 import where.BooleanValueExpression;
@@ -33,7 +40,12 @@ import where.BooleanFactor;
 import where.BooleanTest;
 import where.Predicate;
 import where.ComparisonPredicate;
+import where.CompOperand;
+import where.CompOp;
+import where.CompOp.OperatorType;
+import where.ColumnElement;
 import where.NullPredicate;
+import where.exception.*;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
@@ -114,13 +126,10 @@ public class SimpleDBMSParser
       case PRINT_SHOW_TABLES:
       	break;
       case PRINT_INSERT:
-      	System.out.println("\'INSERT\' requested");
       	break;
       case PRINT_DELETE:
-      	System.out.println("\'DELETE\' requested");
       	break;
       case PRINT_SELECT:
-      	System.out.println("\'SELECT\' requested");
       	break;
       default:
         break;
@@ -360,6 +369,8 @@ void createTableQuery() :
       if (tables.containsKey(tableName)) throw new TableExistenceError();
       table = Table.createTable(tableName, tableElementList);
       tables.put(tableName, table);
+      Relation relation = new Relation(table);
+      save(tableName, relation);
       System.out.println("'" + tableName + "' table is created");
     } catch (CreateTableException e) {
       System.out.println(e.getMessage());
@@ -469,7 +480,7 @@ TableConstraint tableConstraintDefinition() :
   }
 }
 
-PrimaryKey primaryKeyConstraint() :
+schema.tableConstraint.PrimaryKey primaryKeyConstraint() :
 {
   ArrayList<String> columnNameList;
 }
@@ -477,7 +488,7 @@ PrimaryKey primaryKeyConstraint() :
   < PRIMARY > < KEY >
   columnNameList = columnNameList()
   {
-    return new PrimaryKey(columnNameList);
+    return new schema.tableConstraint.PrimaryKey(columnNameList);
   }
 }
 
@@ -521,6 +532,7 @@ void dropTableQuery() :
             System.out.println("Drop table has failed: '" + tableName + "' is referenced by other table");
           } else {
             tables.remove(tableName);
+            delete(tableName);
             System.out.println("'" + tableName + "' table is dropped");
           }
         }
@@ -691,7 +703,7 @@ void insertQuery() :
 {
   String tableName;
   ArrayList<String> columnNameList;
-  ArrayList<Object> objectList;
+  ArrayList<ComparableValue> objectList;
   HashMap<String, Object> sources;
 }
 {
@@ -710,18 +722,33 @@ void insertQuery() :
     if (columnNameList == null) {
       columnNameList = table.getAllColumnsName();
     }
-    objectList = (ArrayList<Object>)sources.get("objectList");
-    for (int i = 0; i < columnNameList.size(); i++)
-    {
-      System.out.println(columnNameList.get(i) +" "+ objectList.get(i));
-    }
+    objectList = (ArrayList<ComparableValue>)sources.get("objectList");
+    try {
+      for (String columnName : columnNameList) {
+        if (!table.hasColumn(columnName)) {
+          throw new InsertColumnExistenceError(columnName);        }      } // 없는 컬럼이 있음
+      if (objectList.size() > columnNameList.size()) {
+        throw new InsertTooMuchItemError();      } // 재료 넘침
+      for (int i = 0; i < columnNameList.size() - objectList.size(); i++) {
+        objectList.add(null);      } // 수 맞을 때까지 null로 채우기
+      HashMap<String, ComparableValue> items = new HashMap<String, ComparableValue>(); 
+      for (int i = 0; i < columnNameList.size(); i++) {
+        // System.out.println(columnNameList.get(i) +" "+ objectList.get(i));
+        items.put(columnNameList.get(i), objectList.get(i));
+      }
+      Relation relation = (Relation)load(tableName);
+      relation.insert(items);
+      save(tableName, relation);
+      System.out.println("The row is inserted");    } catch (InsertException e) {
+      System.out.println(e.getMessage());
+    } catch (Exception e){      e.printStackTrace();    }
   }
 }
 
 HashMap<String, Object> insertColumnsAndSource() :
 {
   ArrayList<String> columnNameList = null;
-  ArrayList<Object> objectList;
+  ArrayList<ComparableValue> objectList;
   HashMap<String, Object> sources = new HashMap<String, Object>();
 }
 {
@@ -772,10 +799,10 @@ String columnName() :
   }
 }
 
-ArrayList<Object> valueList() :
+ArrayList<ComparableValue> valueList() :
 {
-  ArrayList<Object> objectList = new ArrayList<Object>();
-  Object object;
+  ArrayList<ComparableValue> objectList = new ArrayList<ComparableValue>();
+  ComparableValue object;
 }
 {
   // value list를 어레이나 해시 테이블로 넘겨주어야 할 것만 같다. 키는 주어준 것을 사용하거나 1st 2nd 3rd 같은 임시의 것을 사용하는 것이 좋을지도  < VALUES >
@@ -797,15 +824,15 @@ ArrayList<Object> valueList() :
   }
 }
 
-Object value() :
+ComparableValue value() :
 {
-  Object object;
+  ComparableValue object;
 }
 {
   // null을 리턴하거나 comparable value을 리턴
   < NULL >
   {
-    return null;
+    return new ComparableValue(null, null);
   }
 | object = comparableValue()
   {
@@ -813,39 +840,49 @@ Object value() :
   }
 }
 
-Object comparableValue() :
+ComparableValue comparableValue() :
 {}
 {
   // integer, string, string 으로 계산해서 리턴
   < INT_VALUE >
   {
-    return Integer.parseInt(getToken(0).image);
+    return new ComparableValue(Integer.parseInt(getToken(0).image), DataType.Type.INT);
   }
 | < CHAR_STRING >
   {
-    return getToken(0).image.substring(1, getToken(0).image.length() - 1);
+    return new ComparableValue(getToken(0).image.substring(1, getToken(0).image.length() - 1), DataType.Type.CHAR);
   }
 | < DATE_VALUE >
   {
-    return getToken(0).image;
+    return new ComparableValue(getToken(0).image, DataType.Type.DATE);
   }
 }
 
 void deleteQuery() :
 {
   String tableName;
+  WhereClause whereClause = null;
 }
 {
   // 데베 자료구조에서 table 네임을 찾아서 그 멤버들을 where절이 있으면 조건에 맞나 확인하고 없애고 아니면 그냥 비워버린다  < DELETE > < FROM >
   tableName = tableName()
   (
-    whereClause()
+    whereClause = whereClause()
   )?
   < SEMICOLON >
   {
-    // relation 찾고
-    // 없으면 No Such
-    // 있으면 try catch
+    Relation relation = (Relation)load(tableName);
+    if (relation == null) {
+      System.out.println("No such table");
+      return;    }
+    try {
+      int[] result = relation.delete(new ArrayList<Table>(parser.SimpleDBMSParser.tables.values()), whereClause);
+      // 뭔가 정보를 받아와서 출력해야함
+      if (result[0] != 0) {
+        System.out.println(result[0] + " row(s) are deleted");      }
+      if (result[1] != 0) {
+        System.out.println(result[1] + " row(s) are not deleted due to referential integrity");      }    } catch (WhereClauseException e) {
+      System.out.println(e.getMessage());    }
   }
 }
 
@@ -974,83 +1011,99 @@ Predicate predicate() :
 }
 
 ComparisonPredicate comparisonPredicate() :
-{}
+{
+  CompOperand compOperand1;
+  CompOp compOp;
+  CompOperand compOperand2;
+}
 {
   // comp operand가 같은 타입인지 확인도 해야할 것 같고 일단 comp operator에 맞게 계산한 boolean을 리턴
-  compOperand()
-  compOp()
-  compOperand()
+  compOperand1 = compOperand()
+  compOp = compOp()
+  compOperand2 = compOperand()
   {
-    return new ComparisonPredicate();
+    return new ComparisonPredicate(compOperand1, compOp, compOperand2);
   }
 }
 
-void compOperand() :
-{}
+CompOperand compOperand() :
 {
-  comparableValue()
+  CompOperand compOperand;
+  String tableName = null;
+  String columnName;
+}
+{
+  compOperand = comparableValue()
+  {
+    return compOperand;  }
 | (
     LOOKAHEAD(2) // table name인지 column name인지 2번은 미리 확인해야한다
-    tableName()
+    tableName = tableName()
     < PERIOD >
   )?
-  columnName()
+  columnName = columnName()
+  {
+    return new ColumnElement(tableName, columnName);  }
 }
 
-void compOp() :
-{}
+CompOp compOp() :
+{
+  OperatorType opType;
+}
 {
   // comp operator에 따라 integer을 리턴 
   (
     < LESS >
     {
-      
+      opType = OperatorType.LESS;
     }
   | < GREATER >
     {
-      
+      opType = OperatorType.GREATER;
     }
   | < EQUAL >
     {
-      
+      opType = OperatorType.EQUAL;
     }
   | < GREATER_OR_EQUAL >
     {
-      
+      opType = OperatorType.GREATER_OR_EQUAL;
     }
   | < LESS_OR_EQUAL >
     {
-      
+      opType = OperatorType.LESS_OR_EQUAL;
     }
   | < NOT_EQUAL >
     {
-      
+      opType = OperatorType.NOT_EQUAL;
     }
   )
   (
     {
-      
+      return new CompOp(opType);
     }
   )
 }
 
 NullPredicate nullPredicate() :
-{}
+{
+  CompOperand compOperand;
+  String tableName = null;
+  String columnName;
+  boolean isNot = false;
+}
 {
   // table name의 column name이 (not) null 인지 확인한 boolean을 리턴
-  (
-    LOOKAHEAD(2) // table name인지 column name인지 2번은 미리 확인해야한다
-    tableName()
-    < PERIOD >
-  )?
-  columnName()
+  compOperand = compOperand()
   < IS >
   (
     < NOT >
+    {
+      isNot = true;    }
   )?
   < NULL >
   {
-    return new NullPredicate();
+    return new NullPredicate(compOperand, isNot);
   }
 }
 

@@ -2,7 +2,7 @@ package schema.column;
 
 import java.io.Serializable;
 
-import schema.exception.CharLengthError;
+import relation.ComparableValue;
 
 public class Char implements DataType, Serializable {
 	/**
@@ -19,15 +19,20 @@ public class Char implements DataType, Serializable {
 	public Type getType() {
 		return Type.CHAR;
 	}
+	
+	public boolean validateType(){
+		if (size <= 0)
+			return false;
+		return true;
+	}
 
 	@Override
-	public boolean validateType(Object value) {
-		if (value == null)
+	public boolean validateType(ComparableValue value) {
+		if (value.getValue() == null)
+			return true;
+		if (value.getValue().getClass() != String.class)
 			return false;
-		if (value.getClass() != String.class)
-			return false;
-		if (((String)value).length() > size)
-			return false;
+		value.trim(size);
 		return true;
 	}
 	

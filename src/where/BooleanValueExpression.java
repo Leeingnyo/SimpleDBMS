@@ -3,6 +3,7 @@ package where;
 import java.util.ArrayList;
 
 import relation.Record;
+import where.exception.WhereClauseException;
 
 public class BooleanValueExpression implements BooleanValue {
 	
@@ -12,7 +13,7 @@ public class BooleanValueExpression implements BooleanValue {
 		booleanValueList.add(booleanValue);
 	}
 
-	public boolean Test(Record record){
+	public boolean Test(Record record) throws WhereClauseException {
 		boolean test = false;
 		for (BooleanValue booleanValue : booleanValueList){
 			test |= booleanValue.Test(record);

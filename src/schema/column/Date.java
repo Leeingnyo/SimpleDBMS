@@ -2,6 +2,8 @@ package schema.column;
 
 import java.io.Serializable;
 
+import relation.ComparableValue;
+
 public class Date implements DataType, Serializable {
 	/**
 	 * 
@@ -14,10 +16,10 @@ public class Date implements DataType, Serializable {
 	}
 
 	@Override
-	public boolean validateType(Object value) {
-		if (value == null)
-			return false;
-		if (value.getClass() != String.class)
+	public boolean validateType(ComparableValue value) {
+		if (value.getValue() == null)
+			return true;
+		if (value.getValue().getClass() != String.class)
 			return false;
 		return true;
 	}

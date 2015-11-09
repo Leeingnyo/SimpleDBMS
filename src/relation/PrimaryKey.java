@@ -2,13 +2,19 @@ package relation;
 
 import java.util.ArrayList;
 
-public class PrimaryKey extends Record implements Comparable<PrimaryKey> {
-	PrimaryKey(ArrayList<String> columnNameList, ArrayList<Object> objectList) {
-		super(columnNameList, objectList);
+import schema.Column;
+
+public class PrimaryKey extends Record {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8680725905714663774L;
+	
+	public PrimaryKey(){
+		
 	}
 
-	@Override
-	public int compareTo(PrimaryKey other) {
-		return 0;
+	public PrimaryKey(ArrayList<Column> columnList, ArrayList<ComparableValue> objectList) {
+		super(columnList, objectList);
 	}
 }

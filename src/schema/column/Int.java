@@ -2,6 +2,8 @@ package schema.column;
 
 import java.io.Serializable;
 
+import relation.ComparableValue;
+
 public class Int implements DataType, Serializable {
 
 	/**
@@ -15,10 +17,10 @@ public class Int implements DataType, Serializable {
 	}
 
 	@Override
-	public boolean validateType(Object value) {
-		if (value == null)
-			return false;
-		if (value.getClass() != Integer.class)
+	public boolean validateType(ComparableValue value) {
+		if (value.getValue() == null)
+			return true;
+		if (value.getValue().getClass() != Integer.class)
 			return false;
 		return true;
 	}

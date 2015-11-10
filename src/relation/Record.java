@@ -8,6 +8,8 @@ import relation.exception.InsertColumnNonNullableError;
 import relation.exception.InsertException;
 import relation.exception.InsertReferentialIntegrityError;
 import relation.exception.InsertTypeMismatchError;
+import relation.exception.SelectColumnResolveError;
+import relation.exception.SelectException;
 import relation.select.SelectedColumn;
 import schema.Column;
 import schema.Table;
@@ -106,6 +108,27 @@ public class Record implements Serializable {
 			}
 		}
 	}
+
+	public void check(String columnName) throws SelectException {
+		int columnNum = 0;
+		for (Column column : values.keySet()){
+			if (column.getName().equals(columnName))
+				columnNum++;
+		}
+		if (columnNum != 1) throw new SelectColumnResolveError(columnName);
+	}
+	public void check(String tableName, String columnName) throws SelectException {
+		if (tableName == null){ 
+			check(columnName);
+			return;
+		}
+		int columnNum = 0;
+		for (Column column : values.keySet()){
+			if (column.getName().equals(columnName) && column.getTableName().equals(tableName))
+				columnNum++;
+		}
+		if (columnNum != 1) throw new SelectColumnResolveError(columnName);
+	}
 	
 	public ArrayList<ComparableValue> select(ArrayList<SelectedColumn> selectList) {
 		if (selectList == null){
@@ -194,7 +217,15 @@ public class Record implements Serializable {
 		for (Column column : record2.values.keySet()){
 			record.putValue(column, record2.getValue(column.getName()));
 		}
+		record.pk = Record.combinePK(record1, record2);
 		return record;
+	}
+
+	private static PrimaryKey combinePK(Record record1, Record record2) {
+		PrimaryKey pk = new PrimaryKey();
+		pk.values.putAll(record1.pk.values);
+		pk.values.putAll(record2.pk.values);
+		return pk;
 	}
 
 	public void renameTableName(String referenceName) {

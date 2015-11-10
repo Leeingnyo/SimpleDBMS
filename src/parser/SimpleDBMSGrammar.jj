@@ -90,11 +90,8 @@ public class SimpleDBMSParser
   {
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
 
-    Database myDatabase = myDbEnvironment.openDatabase(null, "table-schema", dbConfig);
-
     tables = (HashMap<String, Table>) load("table-schema");
     if (tables == null) tables = new HashMap<String, Table>();
-    myDatabase.close();
 
     while (true)
     {
@@ -365,7 +362,6 @@ void createTableQuery() :
   tableElementList = tableElementList(tableName)
   < SEMICOLON >
   {
-    schema.tableConstraint.ForeignKey.tables = tables;
     try {
       if (tables.containsKey(tableName)) throw new TableExistenceError();
       table = Table.createTable(tableName, tableElementList);
@@ -778,7 +774,7 @@ void insertQuery() :
         throw new InsertTooMuchItemError();      } // 재료 넘침
       int l = objectList.size();
       for (int i = 0; i < columnNameList.size() - l; i++) {
-        objectList.add(null);      } // 수 맞을 때까지 null로 채우기
+        objectList.add(new ComparableValue(null, null));      } // 수 맞을 때까지 null로 채우기
       HashMap<String, ComparableValue> items = new HashMap<String, ComparableValue>(); 
       for (int i = 0; i < columnNameList.size(); i++) {
         // System.out.println(columnNameList.get(i) +" "+ objectList.get(i));

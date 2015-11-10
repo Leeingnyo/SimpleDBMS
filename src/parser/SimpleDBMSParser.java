@@ -84,11 +84,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   {
     SimpleDBMSParser parser = new SimpleDBMSParser(System.in);
 
-    Database myDatabase = myDbEnvironment.openDatabase(null, "table-schema", dbConfig);
-
     tables = (HashMap<String, Table>) load("table-schema");
     if (tables == null) tables = new HashMap<String, Table>();
-    myDatabase.close();
 
     while (true)
     {
@@ -310,7 +307,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     tableName = tableName();
     tableElementList = tableElementList(tableName);
     jj_consume_token(SEMICOLON);
-    schema.tableConstraint.ForeignKey.tables = tables;
     try {
       if (tables.containsKey(tableName)) {if (true) throw new TableExistenceError();}
       table = Table.createTable(tableName, tableElementList);
@@ -740,7 +736,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       } // ?ž¬ë£? ?„˜ì¹?
       int l = objectList.size();
       for (int i = 0; i < columnNameList.size() - l; i++) {
-        objectList.add(null);
+        objectList.add(new ComparableValue(null, null));
       } // ?ˆ˜ ë§žì„ ?•Œê¹Œì? nullë¡? ì±„ìš°ê¸?
       HashMap<String, ComparableValue> items = new HashMap<String, ComparableValue>();
       for (int i = 0; i < columnNameList.size(); i++) {
@@ -1165,6 +1161,14 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     finally { jj_save(2, xla); }
   }
 
+  static private boolean jj_3R_14() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_3()) jj_scanpos = xsp;
+    if (jj_3R_22()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_13() {
     if (jj_3R_21()) return true;
     return false;
@@ -1291,14 +1295,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   static private boolean jj_3_3() {
     if (jj_3R_9()) return true;
     if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_3R_22()) return true;
     return false;
   }
 

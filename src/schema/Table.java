@@ -117,6 +117,10 @@ public class Table implements Serializable {
 	}
 	
 	public boolean hasColumn(String columnName){
+		for (Column column : columns.values()){
+			if (column.getName().equals(columnName))
+				return true;
+		}
 		return columns.containsKey(columnName);
 	}
 	public boolean isReferenced(ArrayList<Table> tables){

@@ -12,6 +12,7 @@ import relation.exception.SelectException;
 import relation.select.SelectedColumn;
 import schema.Column;
 import schema.Table;
+import schema.column.ForeignKey;
 import where.BooleanValue;
 import where.exception.WhereClauseException;
 
@@ -59,7 +60,7 @@ public class Relation implements Serializable {
 				boolean anyHasMe = false;
 				for (Column column : notNullableColumns){
 					Relation relation = (Relation)parser.SimpleDBMSParser.load(column.getTableName());
-					anyHasMe |= relation.hasValue(column.getName(), record.getValue(column.getTableName(), column.getName()));
+					anyHasMe |= relation.hasValue(column.getName(), record.getValue(column.getName()));
 				}
 				if (anyHasMe){ // 널 안 되는 애들 중 누가 날 누가 가리키고 있으면
 					result[1]++;
@@ -68,8 +69,12 @@ public class Relation implements Serializable {
 				for (Column column : nullableColumns){ // 널 되는 애들이 날 가리키고 있으면
 					Relation relation = (Relation)parser.SimpleDBMSParser.load(column.getTableName());
 					for (Record targetRecord : relation.records.values()){
-						if (targetRecord.getValue(column.getTableName(), column.getName()).equals(record.getValue(column.getTableName(), column.getName()))){
-							targetRecord.putValue(column.getName(), new ComparableValue(null, null));
+						for (ForeignKey foreignKey : column.getForeignKeys()){
+							if (targetRecord.getValue(column.getTableName(), column.getName())
+									.equals(record.getValue(foreignKey.getReferenceTableName()
+											, foreignKey.getReferenceColumnName()))){
+								targetRecord.putValue(column.getName(), new ComparableValue(null, null));
+							}
 						}
 					}
 					parser.SimpleDBMSParser.save(column.getTableName(), relation);
@@ -133,19 +138,27 @@ public class Relation implements Serializable {
 
 	public void select(ArrayList<SelectedColumn> selectList) throws SelectException {
 		String schema = "";
+		String line = "";
+		int number = 0;
 		if (selectList == null){
 			for (Column column : table.getAllColumns()){
 				schema += column.getName() + "\t";
+				line += "-----\t";
 			}
 		} else {
 			for (SelectedColumn selectedColumn : selectList){
 				if (!table.hasColumn(selectedColumn.getColumnName())){
 					throw new SelectColumnResolveError(selectedColumn.getColumnName());
 				}
+				for (Record record : records.values()){
+					record.check(selectedColumn.getTableName(), selectedColumn.getColumnName());
+				}
 				schema += selectedColumn.getRefName() + "\t";
+				line += "-----\t";
 			}
 		}
 		System.out.println(schema);
+		System.out.println(line);
 		for (Record record : records.values()){
 			String recordString = "";
 			if (selectList == null){
@@ -155,9 +168,12 @@ public class Relation implements Serializable {
 			} else {
 				for (SelectedColumn selectedColumn : selectList){
 					recordString += record.getValue(selectedColumn.getTableName(), selectedColumn.getColumnName()) + "\t";
+					
 				}
 			}
 			System.out.println(recordString);
+			number++;
 		}
+		System.out.println("(" + number + " rows)");
 	}
 }

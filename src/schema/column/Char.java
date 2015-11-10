@@ -32,6 +32,8 @@ public class Char implements DataType, Serializable {
 			return true;
 		if (value.getValue().getClass() != String.class)
 			return false;
+		if (value.getType() != Type.CHAR)
+			return false;
 		value.trim(size);
 		return true;
 	}

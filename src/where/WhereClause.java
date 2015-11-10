@@ -3,7 +3,7 @@ package where;
 import relation.Record;
 import where.exception.WhereClauseException;
 
-public class WhereClause {
+public class WhereClause implements BooleanValue {
 
 	BooleanValueExpression booleanValueExpression;
 	

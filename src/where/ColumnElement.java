@@ -23,14 +23,14 @@ public class ColumnElement implements CompOperand {
 		if (tableName != null){
 			boolean hasTableName = false;
 			for (Column column : record.getAllColumns()){
-				hasTableName |= column.getTalbeName().equals(tableName);
+				hasTableName |= column.getTableName().equals(tableName);
 			}
 			if (hasTableName == false){
 				throw new WhereTableNotSpecified();
 			}
 		}
 		for (Column column : record.getAllColumns()){
-			if (tableName == null || column.getTalbeName().equals(tableName)){
+			if (tableName == null || column.getTableName().equals(tableName)){
 				if (column.getName().equals(columnName)){
 					if (targetColumn == null){
 						targetColumn = column;
@@ -43,7 +43,7 @@ public class ColumnElement implements CompOperand {
 		if (targetColumn == null){
 			throw new WhereColumnNotExist();
 		}
-		return new ComparableValue(record.getValue(columnName).getValue(), targetColumn.getType().getType());
+		return new ComparableValue(record.getValue(tableName, columnName).getValue(), targetColumn.getType().getType());
 	}
 
 }

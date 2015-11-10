@@ -14,6 +14,7 @@ public class BooleanFactor implements BooleanValue {
 	}
 
 	public boolean Test(Record record) throws WhereClauseException {
+		if (booleanValue == null) return false;
 		return isNot ? !booleanValue.Test(record) : booleanValue.Test(record);
 	}
 }

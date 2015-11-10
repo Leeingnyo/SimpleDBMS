@@ -22,6 +22,8 @@ public class Int implements DataType, Serializable {
 			return true;
 		if (value.getValue().getClass() != Integer.class)
 			return false;
+		if (value.getType() != Type.INT)
+			return false;
 		return true;
 	}
 

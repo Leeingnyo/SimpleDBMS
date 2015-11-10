@@ -29,7 +29,7 @@ public class Column implements TableElement, Serializable {
 		this.isPrimaryKey = false;
 		this.foreignKeys = new ArrayList<ForeignKey>();
 	}
-	public String getTalbeName(){
+	public String getTableName(){
 		return tableName;
 	}
 	public String getName(){
@@ -81,5 +81,13 @@ public class Column implements TableElement, Serializable {
 	@Override
 	public void addElementToTable(Table table) throws CreateTableException {
 		table.putColumn(this);
+	}
+	
+	public void renameTableName(String tableName){
+		this.tableName = tableName;
+	}
+	
+	public void renameColumnName(String columnName){
+		this.columnName = columnName;
 	}
 }

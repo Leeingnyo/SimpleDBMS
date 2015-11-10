@@ -31,15 +31,28 @@ public class Table implements Serializable {
 		this.tableName = tableName;
 		this.columns = columns;
 	}
-	
-	public Table rename(String rename){
-		return new Table(rename, this.columns);
+
+	public Table(Table table){
+		LinkedHashMap<String, Column> columns = new LinkedHashMap<String, Column>();
+		this.tableName = table.tableName;
+		columns.putAll(table.columns);
+		this.columns = columns;
 	}
 	
-	public static Table combineTable(String name, Table table1, Table table2){
+	public void rename(String rename){
+		this.tableName = rename;
+	}
+	
+	public static Table combine(String name, Table table1, Table table2){
 		LinkedHashMap<String, Column> columns = new LinkedHashMap<String, Column>();
-		columns.putAll(table1.columns);
-		columns.putAll(table2.columns);
+		for (String columnName : table1.columns.keySet()){
+			Column column = table1.columns.get(columnName);
+			columns.put(column.getTableName() + "." + columnName, column);
+		}
+		for (String columnName : table2.columns.keySet()){
+			Column column = table2.columns.get(columnName);
+			columns.put(column.getTableName() + "." + columnName, column);
+		}
 		return new Table(name, columns);
 	}
 	

@@ -30,6 +30,7 @@ import relation.Relation;
 import relation.PrimaryKey;
 import relation.Record;
 import relation.ComparableValue;
+import relation.select.*;
 import relation.exception.*;
 
 import where.WhereClause;
@@ -521,6 +522,9 @@ void dropTableQuery() :
   {
     try {
       if (tableNameList == null) {
+        for (Table table : tables.values())        {
+          delete(table.getTableName());
+        }
         tables = new HashMap<String, Table>();
         System.out.println("Every table is dropped");
       }
@@ -621,82 +625,125 @@ ArrayList<String> tableNameList() :
 }
 
 void selectQuery() :
-{}
+{
+  ArrayList<SelectedColumn> selectList;
+  TableExpression tableExpression;
+}
 {
   // table expression에서 selectList인 것들만 반환
   < SELECT >
-  selectList()
-  tableExpression()
+  selectList = selectList()
+  tableExpression = tableExpression()
   < SEMICOLON >
+  {
+    try {
+      Relation relation = tableExpression.getRelation();
+      relation.select(selectList);    } catch (SelectException e) {
+      System.out.println(e.getMessage());
+    } catch (WhereClauseException e) {      System.out.println(e.getMessage());
+    } catch (Exception e) {      e.printStackTrace();
+    }
+    
+    tables = (HashMap<String, Table>) load("table-schema");  }
 }
 
-void selectList() :
-{}
+ArrayList<SelectedColumn> selectList() :
 {
-  // 전부 다 나 밑의 스트링 어레이 리턴
+  ArrayList<SelectedColumn> selectList = new ArrayList<SelectedColumn>();
+}
+{
   < STAR >
-| selectedColumn()
+  {    return null;
+  }
+| {    selectList.add(selectedColumn());
+  }
   (
     < COMMA >
-    selectedColumn()
+    {
+      selectList.add(selectedColumn());    }
   )*
-  /* 나중에 String Array 반환 */
+  {
+    return selectList;  }
 }
 
-void selectedColumn() :
-{}
+SelectedColumn selectedColumn() :
+{
+  String tableName = null;
+  String columnName;
+  String referenceName = null;
+}
 {
   // 이에 맞는 키 값만 찾아서 리스트로 구성 후 리턴..?
   (
     LOOKAHEAD(5)
-    tableName()
+    tableName = tableName()
     < PERIOD >
   )?
-  columnName()
+  columnName = columnName()
   (
     < AS >
-    columnName()
+    referenceName = columnName()
   )?
+  {
+    return new SelectedColumn(tableName, columnName, referenceName);  }
 }
 
-void tableExpression() :
-{}
+TableExpression tableExpression() :
+{
+  ArrayList<ReferedTable> referedTable;
+  WhereClause whereClause = null;
+}
 {
   // from의 결과를 where에 넣어서 비교해서 골라내서 리턴
-  fromClause()
+  referedTable = fromClause()
   (
-    whereClause()
+    whereClause = whereClause()
   )*
+  {
+    return new TableExpression(referedTable, whereClause);   }
 }
 
-void fromClause() :
-{}
+ArrayList<ReferedTable> fromClause() :
+{
+  ArrayList<ReferedTable> referedTable;
+}
 {
   // table의 정보를 리턴
   < FROM >
-  tableReferenceList()
+  referedTable = tableReferenceList()
+  {
+    return referedTable;  }
 }
 
-void tableReferenceList() :
-{}
+ArrayList<ReferedTable> tableReferenceList() :
+{
+  ArrayList<ReferedTable> referedTable = new ArrayList<ReferedTable>();
+}
 {
   // 받은 것을 계속 이어 붙여 나간 리스트를 반환. 아니면 expend한 hash?
-  referedTable()
+  {    referedTable.add(referedTable());
+  }
   (
-    < COMMA >
-    referedTable()
+    < COMMA >    {      referedTable.add(referedTable());    }
   )*
+  {
+    return referedTable;  }
 }
 
-void referedTable() :
-{}
+ReferedTable referedTable() :
+{
+  String tableName;
+  String referenceName = null;
+}
 {
   // 앞의 것의 내용을 뒤의 것의 이름으로 리턴 
-  tableName()
+  tableName = tableName()
   (
     < AS >
-    tableName()
+    referenceName = tableName()
   )?
+  {
+    return new ReferedTable(tableName, referenceName);  }
 }
 
 void insertQuery() :
@@ -729,7 +776,8 @@ void insertQuery() :
           throw new InsertColumnExistenceError(columnName);        }      } // 없는 컬럼이 있음
       if (objectList.size() > columnNameList.size()) {
         throw new InsertTooMuchItemError();      } // 재료 넘침
-      for (int i = 0; i < columnNameList.size() - objectList.size(); i++) {
+      int l = objectList.size();
+      for (int i = 0; i < columnNameList.size() - l; i++) {
         objectList.add(null);      } // 수 맞을 때까지 null로 채우기
       HashMap<String, ComparableValue> items = new HashMap<String, ComparableValue>(); 
       for (int i = 0; i < columnNameList.size(); i++) {
@@ -879,7 +927,8 @@ void deleteQuery() :
       int[] result = relation.delete(new ArrayList<Table>(parser.SimpleDBMSParser.tables.values()), whereClause);
       // 뭔가 정보를 받아와서 출력해야함
       if (result[0] != 0) {
-        System.out.println(result[0] + " row(s) are deleted");      }
+        System.out.println(result[0] + " row(s) are deleted");
+		parser.SimpleDBMSParser.save(tableName, relation);      }
       if (result[1] != 0) {
         System.out.println(result[1] + " row(s) are not deleted due to referential integrity");      }    } catch (WhereClauseException e) {
       System.out.println(e.getMessage());    }

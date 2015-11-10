@@ -21,6 +21,7 @@ import relation.Relation;
 import relation.PrimaryKey;
 import relation.Record;
 import relation.ComparableValue;
+import relation.select.*;
 import relation.exception.*;
 import where.WhereClause;
 import where.BooleanValue;

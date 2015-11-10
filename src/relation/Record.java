@@ -8,9 +8,9 @@ import relation.exception.InsertColumnNonNullableError;
 import relation.exception.InsertException;
 import relation.exception.InsertReferentialIntegrityError;
 import relation.exception.InsertTypeMismatchError;
+import relation.select.SelectedColumn;
 import schema.Column;
 import schema.Table;
-import schema.column.DataType;
 import schema.column.ForeignKey;
 
 public class Record implements Serializable {
@@ -19,6 +19,8 @@ public class Record implements Serializable {
 	 */
 	private static final long serialVersionUID = -1259379295426706452L;
 	protected LinkedHashMap<Column, ComparableValue> values = new LinkedHashMap<Column, ComparableValue>();
+	
+	private PrimaryKey pk = null;
 	
 	public Record(){
 		 
@@ -44,6 +46,18 @@ public class Record implements Serializable {
 			}
 		}
 	}
+	public void putValue(String tableName, String columnName, ComparableValue object) {
+		if (tableName == null){
+			putValue(columnName, object);
+			return;
+		}
+		for (Column column : values.keySet()){
+			if (column.getName().equals(columnName) && column.getTableName().equals(tableName)){
+				putValue(column, object);
+				return;
+			}
+		}
+	}
 	
 	private ArrayList<String> getAllColumnsName(){
 		ArrayList<String> columnNameList = new ArrayList<String>();
@@ -58,13 +72,21 @@ public class Record implements Serializable {
 	}
 	
 	public PrimaryKey getPramaryKey(){
-		PrimaryKey primaryKey = new PrimaryKey();
-		for (Column column : values.keySet()){
-			if (column.isPrimaryKey()){
-				primaryKey.putValue(column, values.get(column));
+		if (pk == null){
+			pk = new PrimaryKey();
+			boolean hasPK = false;
+			for (Column column : values.keySet()){
+				if (column.isPrimaryKey()){
+					hasPK |= true;
+					pk.putValue(column, values.get(column));
+				}
+			}
+			if (!hasPK){
+				pk.putValue(new Column(null, null, null, false)
+						, new ComparableValue(new Integer(System.identityHashCode(values)), null));
 			}
 		}
-		return primaryKey;
+		return pk;
 	}
 	
 	public void validate() throws InsertException {
@@ -84,6 +106,23 @@ public class Record implements Serializable {
 			}
 		}
 	}
+	
+	public ArrayList<ComparableValue> select(ArrayList<SelectedColumn> selectList) {
+		if (selectList == null){
+			return new ArrayList<ComparableValue>(values.values());
+		} else {
+			ArrayList<ComparableValue> objectList = new ArrayList<ComparableValue>();
+			for (SelectedColumn selectedColumn : selectList){
+				String tableName = selectedColumn.getTableName();
+				String columnName = selectedColumn.getColumnName();
+				if (!hasValue(tableName, columnName)){
+					// throw new  
+				}
+				objectList.add(getValue(tableName, columnName));
+			}
+		}
+		return null;
+	}
 
 	public boolean hasValue(String columnName) {
 		for (Column column : values.keySet()){
@@ -92,10 +131,26 @@ public class Record implements Serializable {
 		}
 		return false;
 	}
+	public boolean hasValue(String tableName, String columnName) {
+		if (tableName == null) return hasValue(columnName);
+		for (Column column : values.keySet()){
+			if (column.getName().equals(columnName) && column.getTableName().equals(tableName))
+				return true;
+		}
+		return false;
+	}
 
 	public ComparableValue getValue(String columnName) {
 		for (Column column : values.keySet()){
 			if (column.getName().equals(columnName))
+				return values.get(column);
+		}
+		return null;
+	}
+	public ComparableValue getValue(String tableName, String columnName) {
+		if (tableName == null) return getValue(columnName);
+		for (Column column : values.keySet()){
+			if (column.getName().equals(columnName) && column.getTableName().equals(tableName))
 				return values.get(column);
 		}
 		return null;
@@ -129,5 +184,22 @@ public class Record implements Serializable {
 		} else if (!values.equals(other.values))
 			return false;
 		return true;
+	}
+
+	public static Record combine(Record record1, Record record2) {
+		Record record = new Record();
+		for (Column column : record1.values.keySet()){
+			record.putValue(column, record1.getValue(column.getName()));
+		}
+		for (Column column : record2.values.keySet()){
+			record.putValue(column, record2.getValue(column.getName()));
+		}
+		return record;
+	}
+
+	public void renameTableName(String referenceName) {
+		for (Column column : values.keySet()){
+			column.renameTableName(referenceName);
+		}
 	}
 }

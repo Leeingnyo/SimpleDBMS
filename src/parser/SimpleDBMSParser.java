@@ -24,6 +24,7 @@ import relation.Relation;
 import relation.PrimaryKey;
 import relation.Record;
 import relation.ComparableValue;
+import relation.select.*;
 import relation.exception.*;
 
 import where.WhereClause;
@@ -465,6 +466,10 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     jj_consume_token(SEMICOLON);
     try {
       if (tableNameList == null) {
+        for (Table table : tables.values())
+        {
+          delete(table.getTableName());
+        }
         tables = new HashMap<String, Table>();
         System.out.println("Every table is dropped");
       }
@@ -565,19 +570,36 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
   }
 
   static final public void selectQuery() throws ParseException {
+  ArrayList<SelectedColumn> selectList;
+  TableExpression tableExpression;
     jj_consume_token(SELECT);
-    selectList();
-    tableExpression();
+    selectList = selectList();
+    tableExpression = tableExpression();
     jj_consume_token(SEMICOLON);
+    try {
+      Relation relation = tableExpression.getRelation();
+      relation.select(selectList);
+    } catch (SelectException e) {
+      System.out.println(e.getMessage());
+    } catch (WhereClauseException e) {
+      System.out.println(e.getMessage());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    tables = (HashMap<String, Table>) load("table-schema");
   }
 
-  static final public void selectList() throws ParseException {
+  static final public ArrayList<SelectedColumn> selectList() throws ParseException {
+  ArrayList<SelectedColumn> selectList = new ArrayList<SelectedColumn>();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case STAR:
       jj_consume_token(STAR);
+    {if (true) return null;}
       break;
-    case LEGAL_IDENTIFIER:
-      selectedColumn();
+    default:
+      jj_la1[11] = jj_gen;
+    selectList.add(selectedColumn());
       label_4:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -589,37 +611,42 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
           break label_4;
         }
         jj_consume_token(COMMA);
-        selectedColumn();
+      selectList.add(selectedColumn());
       }
-      break;
-    default:
-      jj_la1[11] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
+    {if (true) return selectList;}
     }
+    throw new Error("Missing return statement in function");
   }
 
-  static final public void selectedColumn() throws ParseException {
+  static final public SelectedColumn selectedColumn() throws ParseException {
+  String tableName = null;
+  String columnName;
+  String referenceName = null;
     if (jj_2_1(5)) {
-      tableName();
+      tableName = tableName();
       jj_consume_token(PERIOD);
     } else {
       ;
     }
-    columnName();
+    columnName = columnName();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case AS:
       jj_consume_token(AS);
-      columnName();
+      referenceName = columnName();
       break;
     default:
       jj_la1[12] = jj_gen;
       ;
     }
+    {if (true) return new SelectedColumn(tableName, columnName, referenceName);}
+    throw new Error("Missing return statement in function");
   }
 
-  static final public void tableExpression() throws ParseException {
-    fromClause();
+  static final public TableExpression tableExpression() throws ParseException {
+  ArrayList<ReferedTable> referedTable;
+  WhereClause whereClause = null;
+    // from?ùò Í≤∞Í≥ºÎ•? where?óê ?Ñ£?ñ¥?Ñú ÎπÑÍµê?ï¥?Ñú Í≥®Îùº?Ç¥?Ñú Î¶¨ÌÑ¥
+      referedTable = fromClause();
     label_5:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -630,17 +657,23 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         jj_la1[13] = jj_gen;
         break label_5;
       }
-      whereClause();
+      whereClause = whereClause();
     }
+    {if (true) return new TableExpression(referedTable, whereClause);}
+    throw new Error("Missing return statement in function");
   }
 
-  static final public void fromClause() throws ParseException {
+  static final public ArrayList<ReferedTable> fromClause() throws ParseException {
+  ArrayList<ReferedTable> referedTable;
     jj_consume_token(FROM);
-    tableReferenceList();
+    referedTable = tableReferenceList();
+    {if (true) return referedTable;}
+    throw new Error("Missing return statement in function");
   }
 
-  static final public void tableReferenceList() throws ParseException {
-    referedTable();
+  static final public ArrayList<ReferedTable> tableReferenceList() throws ParseException {
+  ArrayList<ReferedTable> referedTable = new ArrayList<ReferedTable>();
+    referedTable.add(referedTable());
     label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -652,21 +685,28 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
         break label_6;
       }
       jj_consume_token(COMMA);
-      referedTable();
+      referedTable.add(referedTable());
     }
+    {if (true) return referedTable;}
+    throw new Error("Missing return statement in function");
   }
 
-  static final public void referedTable() throws ParseException {
-    tableName();
+  static final public ReferedTable referedTable() throws ParseException {
+  String tableName;
+  String referenceName = null;
+    // ?ïû?ùò Í≤ÉÏùò ?Ç¥?ö©?ùÑ ?í§?ùò Í≤ÉÏùò ?ù¥Î¶ÑÏúºÎ°? Î¶¨ÌÑ¥ 
+      tableName = tableName();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case AS:
       jj_consume_token(AS);
-      tableName();
+      referenceName = tableName();
       break;
     default:
       jj_la1[15] = jj_gen;
       ;
     }
+    {if (true) return new ReferedTable(tableName, referenceName);}
+    throw new Error("Missing return statement in function");
   }
 
   static final public void insertQuery() throws ParseException {
@@ -698,7 +738,8 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       if (objectList.size() > columnNameList.size()) {
         {if (true) throw new InsertTooMuchItemError();}
       } // ?û¨Î£? ?ÑòÏπ?
-      for (int i = 0; i < columnNameList.size() - objectList.size(); i++) {
+      int l = objectList.size();
+      for (int i = 0; i < columnNameList.size() - l; i++) {
         objectList.add(null);
       } // ?àò ÎßûÏùÑ ?ïåÍπåÏ? nullÎ°? Ï±ÑÏö∞Í∏?
       HashMap<String, ComparableValue> items = new HashMap<String, ComparableValue>();
@@ -862,6 +903,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       // Î≠îÍ? ?†ïÎ≥¥Î?? Î∞õÏïÑ???Ñú Ï∂úÎ†•?ï¥?ïº?ï®
       if (result[0] != 0) {
         System.out.println(result[0] + " row(s) are deleted");
+                parser.SimpleDBMSParser.save(tableName, relation);
       }
       if (result[1] != 0) {
         System.out.println(result[1] + " row(s) are not deleted due to referential integrity");
@@ -1123,25 +1165,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     finally { jj_save(2, xla); }
   }
 
-  static private boolean jj_3_2() {
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_3() {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_3R_22()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_13() {
     if (jj_3R_21()) return true;
     return false;
@@ -1157,13 +1180,13 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_25() {
-    if (jj_scan_token(DATE_VALUE)) return true;
+  static private boolean jj_3R_9() {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_9() {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+  static private boolean jj_3R_25() {
+    if (jj_scan_token(DATE_VALUE)) return true;
     return false;
   }
 
@@ -1179,6 +1202,12 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
 
   static private boolean jj_3R_19() {
     if (jj_scan_token(LESS_OR_EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
@@ -1232,12 +1261,6 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_12() {
     Token xsp;
     xsp = jj_scanpos;
@@ -1257,6 +1280,25 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
     }
     }
     }
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_3() {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_14() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_3()) jj_scanpos = xsp;
+    if (jj_3R_22()) return true;
     return false;
   }
 
@@ -1283,7 +1325,7 @@ public class SimpleDBMSParser implements SimpleDBMSParserConstants {
       jj_la1_0 = new int[] {0x48b4060,0x48b4040,0x48b4040,0x0,0xc00,0x80000000,0x380,0xc00,0x0,0x100000,0x0,0x100000,0x200000,0x8000000,0x0,0x200000,0x0,0x0,0x0,0x0,0x0,0x8000000,0x10000000,0x20000000,0x80000000,0x0,0x0,0x0,0x0,0x80000000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x10,0x2000,0x0,0x0,0x0,0x10,0x2000,0x10,0x2000,0x0,0x0,0x10,0x0,0x4,0x10,0x10,0x94001,0x94000,0x0,0x0,0x0,0x0,0x96004,0x96000,0x96000,0x1f80,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x10,0x2000,0x0,0x0,0x0,0x10,0x2000,0x10,0x0,0x0,0x0,0x10,0x0,0x4,0x10,0x10,0x94001,0x94000,0x0,0x0,0x0,0x0,0x96004,0x96000,0x96000,0x1f80,0x0,};
    }
   static final private JJCalls[] jj_2_rtns = new JJCalls[3];
   static private boolean jj_rescan = false;

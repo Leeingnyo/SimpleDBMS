@@ -21,6 +21,8 @@ public class Date implements DataType, Serializable {
 			return true;
 		if (value.getValue().getClass() != String.class)
 			return false;
+		if (value.getType() != Type.DATE)
+			return false;
 		return true;
 	}
 	

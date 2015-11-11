@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import relation.Relation;
 import relation.exception.SelectException;
+import relation.exception.SelectTableNotOnceErrer;
 import schema.Table;
 import where.BooleanFactor;
 import where.WhereClause;
@@ -20,8 +21,12 @@ public class TableExpression {
 	}
 	
 	public Relation getRelation() throws WhereClauseException, SelectException {
+		ArrayList<String> referedTables = new ArrayList<String>();
 		Relation relation = null;
 		for (ReferedTable referedTable : referedTable){
+			if (referedTables.contains(referedTable.tableName))
+				throw new SelectTableNotOnceErrer(referedTable.tableName);
+			referedTables.add(referedTable.tableName);
 			relation = Relation.cartesianProduct(relation, referedTable.getRelation());
 		}
 		select(relation);

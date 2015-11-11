@@ -2,6 +2,7 @@ package relation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import relation.exception.InsertColumnNonNullableError;
@@ -84,20 +85,55 @@ public class Record implements Serializable {
 	}
 	
 	public void validate() throws InsertException {
+		/* 
+		int foreignKeyNum = 0;
+		int nullForeignKeyNum = 0;
 		for (Column column : values.keySet()){
-			if (!column.isNullable() && values.get(column) == null){
+			if (column.isForeignKey()){
+				foreignKeyNum++;
+				if (values.get(column).getValue() == null){
+					nullForeignKeyNum++;
+				}
+			}
+		}
+		if (foreignKeyNum != nullForeignKeyNum){
+			throw new InsertReferentialIntegrityError();
+		}
+		*/
+		HashMap<String, Integer> primaryKeyNumber = new HashMap<String, Integer>();
+		HashMap<String, Integer> nullInputNumber = new HashMap<String, Integer>();
+		for (Column column : values.keySet()){
+			if (!column.isNullable() && values.get(column).getValue() == null){
 				throw new InsertColumnNonNullableError(column.getName());
 			}
 			if (!column.getType().validateType(values.get(column))){
 				throw new InsertTypeMismatchError();
 			}
 			for (ForeignKey foreignKey : column.getForeignKeys()){
-				Table table = parser.SimpleDBMSParser.tables.get(foreignKey.getReferenceTableName());
+				String referenceTableName = foreignKey.getReferenceTableName();
+				String referenceColumnName = foreignKey.getReferenceColumnName();
+				Table table = parser.SimpleDBMSParser.tables.get(referenceTableName);
+				if (nullInputNumber.get(referenceTableName) == null){
+					primaryKeyNumber.put(referenceTableName, table.getAllPrimaryKeys().size());
+					nullInputNumber.put(referenceTableName, 1);
+				} else {
+					nullInputNumber.put(referenceTableName, nullInputNumber.get(referenceTableName) + 1);
+				} // 어느 테이블이 얼마나 foreign key를 갖고 있는지 개수를 셈 
 				Relation relation = (Relation)parser.SimpleDBMSParser.load(table.getTableName());
-				if (!relation.hasValue(foreignKey.getReferenceColumnName(), values.get(column))){
+				if (values.get(column).getValue() == null){
+					nullInputNumber.put(referenceTableName, nullInputNumber.get(referenceTableName) - 1);
+					continue;
+				}
+				if (!relation.hasValue(referenceColumnName, values.get(column))){
 					throw new InsertReferentialIntegrityError();
 				}
 			}
+		}
+		for (String key : nullInputNumber.keySet()){
+			System.err.println(nullInputNumber.get(key));
+			System.err.println(primaryKeyNumber.get(key));
+			if (!(nullInputNumber.get(key) == 0 || primaryKeyNumber.get(key) == nullInputNumber.get(key)))
+				throw new InsertReferentialIntegrityError();
 		}
 	}
 

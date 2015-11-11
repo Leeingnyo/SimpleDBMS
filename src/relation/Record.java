@@ -61,14 +61,6 @@ public class Record implements Serializable {
 		}
 	}
 	
-	private ArrayList<String> getAllColumnsName(){
-		ArrayList<String> columnNameList = new ArrayList<String>();
-		for (Column column : values.keySet()){
-			columnNameList.add(column.getName());
-		}
-		return columnNameList;
-	}
-	
 	public ArrayList<Column> getAllColumns(){
 		return new ArrayList<Column>(values.keySet());
 	}

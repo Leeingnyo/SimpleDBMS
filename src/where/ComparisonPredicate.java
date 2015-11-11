@@ -9,10 +9,6 @@ public class ComparisonPredicate implements Predicate, BooleanValue {
 	CompOp operator;
 	CompOperand operand2;
 	
-	public ComparisonPredicate(){
-		
-	}
-	
 	public ComparisonPredicate(CompOperand compOperand1, CompOp operator, CompOperand compOperand2){
 		this.operand1 = compOperand1;
 		this.operator = operator;

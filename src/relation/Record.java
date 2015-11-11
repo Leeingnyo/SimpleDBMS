@@ -11,7 +11,6 @@ import relation.exception.InsertReferentialIntegrityError;
 import relation.exception.InsertTypeMismatchError;
 import relation.exception.SelectColumnResolveError;
 import relation.exception.SelectException;
-import relation.select.SelectedColumn;
 import schema.Column;
 import schema.Table;
 import schema.column.ForeignKey;
@@ -66,7 +65,7 @@ public class Record implements Serializable {
 		return new ArrayList<Column>(values.keySet());
 	}
 	
-	public PrimaryKey getPramaryKey(){
+	public PrimaryKey getPrimaryKey(){
 		if (pk == null){
 			pk = new PrimaryKey();
 			boolean hasPK = false;
@@ -85,21 +84,6 @@ public class Record implements Serializable {
 	}
 	
 	public void validate() throws InsertException {
-		/* 
-		int foreignKeyNum = 0;
-		int nullForeignKeyNum = 0;
-		for (Column column : values.keySet()){
-			if (column.isForeignKey()){
-				foreignKeyNum++;
-				if (values.get(column).getValue() == null){
-					nullForeignKeyNum++;
-				}
-			}
-		}
-		if (foreignKeyNum != nullForeignKeyNum){
-			throw new InsertReferentialIntegrityError();
-		}
-		*/
 		HashMap<String, Integer> primaryKeyNumber = new HashMap<String, Integer>();
 		HashMap<String, Integer> nullInputNumber = new HashMap<String, Integer>();
 		for (Column column : values.keySet()){
@@ -130,8 +114,6 @@ public class Record implements Serializable {
 			}
 		}
 		for (String key : nullInputNumber.keySet()){
-			System.err.println(nullInputNumber.get(key));
-			System.err.println(primaryKeyNumber.get(key));
 			if (!(nullInputNumber.get(key) == 0 || primaryKeyNumber.get(key) == nullInputNumber.get(key)))
 				throw new InsertReferentialIntegrityError();
 		}
@@ -156,23 +138,6 @@ public class Record implements Serializable {
 				columnNum++;
 		}
 		if (columnNum != 1) throw new SelectColumnResolveError(columnName);
-	}
-	
-	public ArrayList<ComparableValue> select(ArrayList<SelectedColumn> selectList) {
-		if (selectList == null){
-			return new ArrayList<ComparableValue>(values.values());
-		} else {
-			ArrayList<ComparableValue> objectList = new ArrayList<ComparableValue>();
-			for (SelectedColumn selectedColumn : selectList){
-				String tableName = selectedColumn.getTableName();
-				String columnName = selectedColumn.getColumnName();
-				if (!hasValue(tableName, columnName)){
-					// throw new  
-				}
-				objectList.add(getValue(tableName, columnName));
-			}
-		}
-		return null;
 	}
 
 	public boolean hasValue(String columnName) {

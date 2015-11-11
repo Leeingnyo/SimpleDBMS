@@ -38,7 +38,7 @@ public class Relation implements Serializable {
 			}
 		}
 		record.validate();
-		PrimaryKey primaryKey = record.getPramaryKey();
+		PrimaryKey primaryKey = record.getPrimaryKey();
 		if (records.containsKey(primaryKey)){
 			throw new InsertDuplicatePrimaryKeyError();
 		}
@@ -80,7 +80,7 @@ public class Relation implements Serializable {
 					parser.SimpleDBMSParser.save(column.getTableName(), relation);
 				}
 				// 걔네 전부 널로 만들고 나 삭제
-				toDelete.add(record.getPramaryKey());
+				toDelete.add(record.getPrimaryKey());
 				result[0]++;
 			}
 		}
@@ -99,7 +99,7 @@ public class Relation implements Serializable {
 		for (Record record1 : me.records.values()){
 			for (Record record2 : other.records.values()){
 				Record record = Record.combine(record1, record2);
-				relation.records.put(record.getPramaryKey(), record);
+				relation.records.put(record.getPrimaryKey(), record);
 			}
 		}
 		return relation;
